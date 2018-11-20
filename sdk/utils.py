@@ -18,3 +18,4 @@ def recurse_docs(documents_json, container_id, workspace_id):
             documents += docs
 
     return containers, documents
+

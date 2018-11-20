@@ -1,4 +1,8 @@
 import db
+import requests
+import config
+import sdk.connection
+import os
 
 
 class Document(object):
@@ -43,4 +47,35 @@ class Document(object):
                 needs_download = True
 
         return needs_download
+
+    @property
+    def local_filename(self):
+        if '.' in self.name:
+            file_ending = self.name.split('.')[-1]
+            return '%s.%s' % (self.id, file_ending)
+
+        return self.id
+
+    @property
+    def local_file_location(self):
+        return os.path.join('localdata/%s' % self.workspace_id)
+
+    @property
+    def local_filepath(self):
+        return os.path.join(self.local_file_location, self.local_filename)
+
+    def download(self):
+        print('Downloading', self)
+        doc_response = sdk.connection.download_doc(self.id)
+
+        if not os.path.exists(self.local_file_location):
+            os.makedirs(self.local_file_location)
+
+        with open(self.local_filepath, 'wb') as fp:
+            fp.write(doc_response.content)
+
+
+
+
+
 

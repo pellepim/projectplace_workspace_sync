@@ -1,5 +1,7 @@
 import sdk.connection
 import db
+import models.workspace
+import os
 
 
 class Structure(object):
@@ -19,7 +21,7 @@ class Structure(object):
 
         return workspace_map
 
-    def initialize(self):
+    def synchronize(self):
         workspaces = sdk.connection.account_workspaces()
         workspaces_ids = [w.id for w in workspaces]
         documents_that_need_download = []
@@ -50,5 +52,71 @@ class Structure(object):
                 if d.update_or_insert():
                     documents_that_need_download += [d]
 
-    def download_documents(self, documents_that_need_download):
-        print('Downloading', documents_that_need_download)
+        for doc in documents_that_need_download:
+            doc.download()
+
+    @property
+    def html_file_location(self):
+        if not os.path.exists('localdata/html'):
+            os.makedirs('localdata/html')
+
+        return 'localdata/html'
+
+    @property
+    def html_file_path(self):
+        return os.path.join(self.html_file_location, 'index.html')
+
+    @property
+    def html_header(self):
+        return """
+        <html>
+        <head><title>Projects</title></head>
+        <body>
+        <a href="%(home_url)s">Projects</a> /
+        """
+
+    def html_content(self, workspaces):
+
+        def lst():
+            workspaces_html = ''
+            for workspace in workspaces:
+                workspaces_html += '<li><a href="%(workspace_url)s.html">%(workspace_name)s</a></li>' % {
+                    'workspace_url': workspace.id,
+                    'workspace_name': workspace.name
+                }
+
+            return workspaces_html
+
+        return """
+            <ul>
+            %s
+            </ul>
+        """ % lst()
+
+
+
+
+    @property
+    def html_footer(self):
+        return """
+        </body>
+        </html>
+        """
+
+    def render_html(self):
+        with db.DBConnection() as dbconn:
+            workspace_rows = dbconn.fetchall('SELECT id, name FROM workspaces')
+            workspaces = [
+                models.workspace.Workspace(row[1], row[0]) for row in workspace_rows
+            ]
+
+        for workspace in workspaces:
+            workspace.render_html()
+
+        with open(self.html_file_path, 'w') as fp:
+            fp.write(self.html_header)
+            fp.write(self.html_content(workspaces))
+            fp.write(self.html_footer)
+
+
+
