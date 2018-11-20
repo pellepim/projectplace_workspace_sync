@@ -13,6 +13,7 @@ It is suitable to set up as a recurring task, for example nightly.
 
 ## Set up
 
+### 1. Config
 First of all you need to request a "robot" from Projectplace. This is only applicable for Projectplace enterprise 
 accounts. Then enter the information you received from projectplace in config.json as follows:
 
@@ -20,18 +21,30 @@ accounts. Then enter the information you received from projectplace in config.js
         "consumer_key": "ENTER YOUR APPLICATION KEY",
         "consumer_secret": "ENTER YOUR APPLCIATION SECRET",
         "tokey_key": "ENTER YOUR TOKEN KEY",
-        "token_secret": "ENTER YOUR TOKEN SECRET"
+        "token_secret": "ENTER YOUR TOKEN SECRET",
+        "host": "https://api.projectplace.com"
     }
 
-### Limit to specific workspaces (optional)
+
+### 2. Limit to specific workspaces (optional)
 If you want to limit the synchronisation to certain specific workspaces, specify an array of
 workspace_ids such as:
 
     {
         ...
-        "token_secret: "ENTER YOUR TOKEN SECRET",
+        "host": "https://api.projectplace.com",
         "workspace_ids": [3281238,3212309]
     }
+
+
+### 3. Python environment
+This script is written assuming python3 - make sure you have python3 available on your computer.
+
+1. Start by cloning the repo
+2. In the resulting directory type `virtualenv VIRTUAL -p python3`
+3. Then type `source VIRTUAL/bin/activate` to enter the virtual environment
+4. Run `pip install -r requirements.txt` to install necessary packages.
+
 
 ## Running
 ### 1. Run sync
