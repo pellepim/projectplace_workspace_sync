@@ -24,7 +24,6 @@ class Config(object):
         self.HOST = conf_dict['host']
         self.WORKSPACE_IDS = conf_dict.get('workspace_ids', [])
 
-
     def oauth(self):
         return requests_oauthlib.OAuth1(
             self.CONSUMER_KEY, client_secret=self.CONSUMER_SECRET, resource_owner_key=self.ACCESS_TOKEN,

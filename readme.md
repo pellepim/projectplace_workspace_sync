@@ -25,7 +25,6 @@ accounts. Then enter the information you received from projectplace in config.js
         "host": "https://api.projectplace.com"
     }
 
-
 ### 2. Limit to specific workspaces (optional)
 If you want to limit the synchronisation to certain specific workspaces, specify an array of
 workspace_ids such as:
@@ -35,7 +34,6 @@ workspace_ids such as:
         "host": "https://api.projectplace.com",
         "workspace_ids": [3281238,3212309]
     }
-
 
 ### 3. Python environment
 This script is written assuming python3 - make sure you have python3 available on your computer.

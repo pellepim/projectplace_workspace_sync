@@ -46,9 +46,42 @@ class Workspace(object):
     def html_header(self):
         return """
             <html>
-            <head><title>Projects</title></head>
+            <head>
+                <title>%(workspace_name)s</title>
+                <style type="text/css">
+                body {
+                    font-size: 16px;
+                    font-family: sans-serif;
+                    margin: 0;
+                    padding: 0;
+                }
+                a {
+                    color: #559955;
+                    text-decoration: none;
+                }
+                a:hover {
+                    text-decoration: underline;
+                }
+                a:visited {
+                    color: #997777;
+                }
+                div.breadcrumbs {
+                    margin: 0px;
+                    padding: 20px;
+                    border-bottom: 1px solid #333;
+                    background-color: #dadada;
+                }
+                ul li {
+                    margin-bottom: 10px;
+                }
+                div.content {
+                    padding: 10px 20px 0 20px;
+                }
+            </style>
+            </head>
             <body>
-            <a href="%(home_url)s">Projects</a> / <a href="%(workspace_url)s">%(workspace_name)s</a> /
+            <div class="breadcrumbs"><a href="%(home_url)s">Projects</a> / <a href="%(workspace_url)s">%(workspace_name)s</a></div>
+            <div class="content">
             """ % {
             'home_url': 'index.html',
             'workspace_url': self.html_file_name,
@@ -99,6 +132,7 @@ class Workspace(object):
     @property
     def html_footer(self):
         return """
+            </div>
             </body>
             </html>
             """

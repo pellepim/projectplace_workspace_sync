@@ -107,14 +107,48 @@ class Container(object):
         workspace = models.workspace.Workspace.get_by_id(self.workspace_id)
         return """
                <html>
-               <head><title>Projects</title></head>
+               <head>
+                   <title>%(container_name)s</title>
+                    <style type="text/css">
+                    body {
+                        font-size: 16px;
+                        font-family: sans-serif;
+                        margin: 0;
+                        padding: 0;
+                    }
+                    a {
+                        color: #559955;
+                        text-decoration: none;
+                    }
+                    a:hover {
+                        text-decoration: underline;
+                    }
+                    a:visited {
+                        color: #997777;
+                    }
+                    div.breadcrumbs {
+                        margin: 0px;
+                        padding: 20px;
+                        border-bottom: 1px solid #333;
+                        background-color: #dadada;
+                    }
+                    ul li {
+                        margin-bottom: 10px;
+                    }
+                    div.content {
+                        padding: 10px 20px 0 20px;
+                    }
+                    </style>
+               </head>
                <body>
-               <a href="%(home_url)s">Projects</a> / <a href="%(workspace_url)s.html">%(workspace_name)s</a> / %(container_breadcrumb)s
+               <div class="breadcrumbs"><a href="%(home_url)s">Projects</a> / <a href="%(workspace_url)s.html">%(workspace_name)s</a> / %(container_breadcrumb)s</div>
+               <div class="content">
                """ % {
             'home_url': 'index.html',
             'workspace_url': workspace.id,
             'workspace_name': workspace.name,
-            'container_breadcrumb': self.html_container_breadcrumb
+            'container_breadcrumb': self.html_container_breadcrumb,
+            'container_name': self.name
         }
 
     @classmethod
@@ -161,9 +195,9 @@ class Container(object):
     @property
     def html_footer(self):
         return """
-               </body>
-               </html>
-               """
+        </div>
+        </body>
+        </html>"""
 
     def render_html(self):
         with db.DBConnection() as dbconn:
