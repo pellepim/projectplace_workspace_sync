@@ -46,7 +46,19 @@ class Document(object):
 
                 needs_download = True
 
+            if needs_download:
+                dbconn.update('UPDATE documents SET downloaded = 0 WHERE id = ?', (self.id,))
+
         return needs_download
+
+    @classmethod
+    def by_pending_download(cls):
+        with db.DBConnection() as dbconn:
+            document_rows = dbconn.fetchall(
+                'SELECT name, id, modified_time, container_id, workspace_id FROM documents WHERE downloaded = 0'
+            )
+
+        return [Document(*row) for row in document_rows]
 
     @property
     def local_filename(self):
@@ -73,6 +85,9 @@ class Document(object):
 
         with open(self.local_filepath, 'wb') as fp:
             fp.write(doc_response.content)
+
+        with db.DBConnection() as dbconn:
+            dbconn.update('UPDATE documents SET downloaded = 1 WHERE id = ?', (self.id,))
 
 
 

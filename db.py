@@ -36,6 +36,9 @@ MIGRATIONS = [
     """,
     """
     ALTER TABLE [documents] ADD COLUMN [workspace_id] INTEGER;
+    """,
+    """
+    ALTER TABLE [documents] ADD COLUMN [downloaded] BIT DEFAULT 0;
     """
 ]
 

@@ -9,7 +9,8 @@ class Config(object):
         'consumer_secret': str,
         'access_token': str,
         'access_token_secret': str,
-        'host': str
+        'host': str,
+        voluptuous.Optional('workspace_ids'): [int]
     }, required=True)
 
     def __init__(self):
@@ -21,6 +22,8 @@ class Config(object):
         self.ACCESS_TOKEN = conf_dict['access_token']
         self.ACCESS_TOKEN_SECRET = conf_dict['access_token_secret']
         self.HOST = conf_dict['host']
+        self.WORKSPACE_IDS = conf_dict.get('workspace_ids', [])
+
 
     def oauth(self):
         return requests_oauthlib.OAuth1(

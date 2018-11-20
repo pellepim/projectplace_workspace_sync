@@ -1,7 +1,9 @@
 import sdk.connection
 import db
 import models.workspace
+import models.document
 import os
+import config
 
 
 class Structure(object):
@@ -23,8 +25,10 @@ class Structure(object):
 
     def synchronize(self):
         workspaces = sdk.connection.account_workspaces()
+        if config.conf.WORKSPACE_IDS:
+            print('Limited sync, check config for specific workspaces synchronized')
+            workspaces = [w for w in workspaces if w.id in config.conf.WORKSPACE_IDS]
         workspaces_ids = [w.id for w in workspaces]
-        documents_that_need_download = []
 
         with db.DBConnection() as dbconn:
             existing_workspace_map = self.workspaces_from_db(dbconn)
@@ -49,11 +53,14 @@ class Structure(object):
                 c.update_or_insert()
 
             for d in documents:
-                if d.update_or_insert():
-                    documents_that_need_download += [d]
+                d.update_or_insert()
 
-        for doc in documents_that_need_download:
-            doc.download()
+    @classmethod
+    def download_docs(cls):
+        documents = models.document.Document.by_pending_download()
+
+        for document in documents:
+            document.download()
 
     @property
     def html_file_location(self):
@@ -92,9 +99,6 @@ class Structure(object):
             %s
             </ul>
         """ % lst()
-
-
-
 
     @property
     def html_footer(self):

@@ -1,6 +1,17 @@
-# Sync projectplace workspace data
+# Sync projectplace workspace documents
 
-## 1. Set up config.json
+This is a tool intended for IT-personnel in an organisation using 
+[Projectplace](https://www.projectplace.com).
+
+It downloads all documents in all workspaces in a Projectplace Enterprise Account, and on subsequent runs
+downloads only new or modified files.
+
+It then renders a HTML-page structure providing the opportunity to navigate the workspaces, folders and 
+documents.
+
+It is suitable to set up as a recurring task, for example nightly.
+
+## Set up
 
 First of all you need to request a "robot" from Projectplace. This is only applicable for Projectplace enterprise 
 accounts. Then enter the information you received from projectplace in config.json as follows:
@@ -11,22 +22,41 @@ accounts. Then enter the information you received from projectplace in config.js
         "tokey_key": "ENTER YOUR TOKEN KEY",
         "token_secret": "ENTER YOUR TOKEN SECRET"
     }
-    
-## 2. Run sync
+
+### Limit to specific workspaces (optional)
+If you want to limit the synchronisation to certain specific workspaces, specify an array of
+workspace_ids such as:
+
+    {
+        ...
+        "token_secret: "ENTER YOUR TOKEN SECRET",
+        "workspace_ids": [3281238,3212309]
+    }
+
+## Running
+### 1. Run sync
 
 `python run.py -s`
 
 This will take a long time for the first run, as it populates a local sqlite database with all the
 relevant information and also downloads each document in turn.
 
-The sqlite database is saved in the local file `.data`. Each document is saved in directory
+The sqlite database is saved in the local file `.data`.
+
+### 2. Download pending files
+
+Running the sync (see step 1) sets up a local datastructure, but it doesn't actually download any files. To
+accomplish this run:
+
+`python run.py -d`
+
+All documents marked as in need of download during the synch-step are now downloaded in turn.
+
+Each document is saved in directory
 `localdata` sorted under workspace IDs. The file name from Projectplace will not be maintained. For example
 "Resume.docx" will be visible as a unique ID, followed by the file ending - such as `27182376327.docx`.
 
-The real document names are stored in the sqlite database however, and this is used to render html-pages for
-navigation.
-
-## 3. Render html
+### 3. Render html
 
 `python run.py -m`
 
@@ -34,3 +64,10 @@ This should be relatively fast as it uses the local sqlite database to generate 
 to navigate Workspaces, Folders and to view documents.
 
 Once run, simply double click `localdata/html/index.html` to navigate the workspace documents.
+
+### 4. Do it all in one fell swoop
+Yo can run all steps above by specifying
+
+`python run.py -s -d -m`
+
+This will synchronize the database, download files and render new HTML-pages.
