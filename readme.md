@@ -77,7 +77,7 @@ to navigate Workspaces, Folders and to view documents.
 Once run, simply double click `localdata/html/index.html` to navigate the workspace documents.
 
 ### 4. Do it all in one fell swoop
-Yo can run all steps above by specifying
+You can run all steps above by specifying
 
 `python run.py -s -d -m`
 
