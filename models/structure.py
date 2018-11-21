@@ -95,7 +95,7 @@ class Structure(object):
             <style type="text/css">
                 body {
                     font-size: 16px;
-                    font-family: sans-serif;
+                    font-family: "PromixaNovaRegular", "AvenirRegular", Arial, Helvetica, sans-serif;
                     margin: 0;
                     padding: 0;
                 }
@@ -112,8 +112,8 @@ class Structure(object):
                 div.breadcrumbs {
                     margin: 0px;
                     padding: 20px;
-                    border-bottom: 1px solid #333;
-                    background-color: #dadada;
+                    border-bottom: 2px solid #ddd;
+                    background-color: #f5f5f5;
                 }
                 ul li {
                     margin-bottom: 10px;
@@ -169,6 +169,7 @@ class Structure(object):
             fp.write(self.html_header)
             fp.write(self.html_content(workspaces))
             fp.write(self.html_footer)
+
 
 
 
