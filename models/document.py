@@ -74,10 +74,9 @@ class Document(object):
 
     @property
     def local_filepath(self):
-        return os.path.join(self.local_file_location, self.local_filename)
+        return os.path.join(self.local_file_location, str(self.local_filename))
 
     def download(self):
-        print('Downloading', self)
         doc_response = sdk.connection.download_doc(self.id)
 
         if not os.path.exists(self.local_file_location):

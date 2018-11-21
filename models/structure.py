@@ -5,6 +5,7 @@ import models.document
 import os
 import config
 import textwrap
+import sys
 
 
 class Structure(object):
@@ -59,9 +60,20 @@ class Structure(object):
     @classmethod
     def download_docs(cls):
         documents = models.document.Document.by_pending_download()
-
+        no = len(documents)
+        current = 1
+        previous_len = 0
         for document in documents:
+            sys.stdout.write('\r' + ' ' * previous_len)
+            sys.stdout.flush()
+            document_name = document.name if len(document.name) < 60 else document.name[0:50] + '...' + document.name[-5:]
+            to_print = 'Downloading: %d / %d (%s)' % (current, no, document_name)
+            previous_len = len(to_print)
+            sys.stdout.write('\r' + to_print)
+            sys.stdout.flush()
             document.download()
+            current += 1
+        sys.stdout.write('\n')
 
     @property
     def html_file_location(self):
