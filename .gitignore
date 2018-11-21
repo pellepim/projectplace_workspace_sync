@@ -1,3 +1,4 @@
+backup_*
 localdata/
 .idea/
 config.json

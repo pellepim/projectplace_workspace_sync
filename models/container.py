@@ -3,6 +3,7 @@ import os
 import models.document
 import models.workspace
 
+
 class Container(object):
 
     def __init__(self, name, _id, container_id, workspace_id):
@@ -36,7 +37,8 @@ class Container(object):
     def get_in_container(cls, container_id):
         with db.DBConnection() as dbconn:
             container_rows = dbconn.fetchall(
-                'SELECT id, name, container_id, workspace_id FROM containers WHERE container_id = ?', (container_id,)
+                'SELECT id, name, container_id, workspace_id FROM containers WHERE container_id = ? ORDER BY name ASC',
+                (container_id,)
             )
 
         return [
@@ -209,14 +211,7 @@ class Container(object):
     def render_html(self):
         with db.DBConnection() as dbconn:
             containers = Container.get_in_container(self.id)
-
-            document_rows = dbconn.fetchall(
-                'SELECT id, name, container_id, workspace_id, modified_time FROM documents WHERE container_id = ?',
-                (self.id,)
-            )
-            documents = [
-                models.document.Document(row[1], row[0], row[4], row[2], row[3]) for row in document_rows
-            ]
+            documents = models.document.Document.get_in_container(self.id)
 
         for container in containers:
             container.render_html()

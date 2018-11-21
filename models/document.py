@@ -52,6 +52,17 @@ class Document(object):
         return needs_download
 
     @classmethod
+    def get_in_container(cls, container_id):
+        with db.DBConnection() as dbconn:
+            document_rows = dbconn.fetchall(
+                'SELECT name, id, modified_time, container_id, workspace_id FROM documents WHERE container_id = ? ORDER BY name ASC',
+                (container_id,)
+            )
+        return [
+            Document(*row) for row in document_rows
+        ]
+
+    @classmethod
     def by_pending_download(cls):
         with db.DBConnection() as dbconn:
             document_rows = dbconn.fetchall(

@@ -157,7 +157,7 @@ class Structure(object):
 
     def render_html(self):
         with db.DBConnection() as dbconn:
-            workspace_rows = dbconn.fetchall('SELECT id, name FROM workspaces')
+            workspace_rows = dbconn.fetchall('SELECT id, name FROM workspaces ORDER BY name ASC')
             workspaces = [
                 models.workspace.Workspace(row[1], row[0]) for row in workspace_rows
             ]

@@ -146,20 +146,8 @@ class Workspace(object):
 
     def render_html(self):
         with db.DBConnection() as dbconn:
-            container_rows = dbconn.fetchall(
-                'SELECT id, name, container_id, workspace_id FROM containers WHERE container_id = ?', (self.id,)
-            )
-            containers = [
-                models.container.Container(row[1], row[0], row[2], row[3]) for row in container_rows
-            ]
-
-            document_rows = dbconn.fetchall(
-                'SELECT id, name, container_id, workspace_id, modified_time FROM documents WHERE container_id = ?',
-                (self.id,)
-            )
-            documents = [
-                models.document.Document(row[1], row[0], row[4], row[2], row[3]) for row in document_rows
-            ]
+            containers = models.container.Container.get_in_container(self.id)
+            documents = models.document.Document.get_in_container(self.id)
 
         for container in containers:
             container.render_html()
