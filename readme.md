@@ -3,13 +3,24 @@
 This is a tool intended for IT-personnel in an organisation using 
 [Projectplace](https://www.projectplace.com).
 
-It downloads all documents in all workspaces in a Projectplace Enterprise Account, and on subsequent runs
-downloads only new or modified files.
+It downloads all documents in the main document archive in all workspaces in a Projectplace Enterprise Account, 
+and on subsequent runs downloads only new or modified files.
 
 It then renders a HTML-page structure providing the opportunity to navigate the workspaces, folders and 
 documents.
 
 It is suitable to set up as a recurring task, for example nightly.
+
+## Poor man's backup
+When workspaces are archived or terminated in Projectplace - this script will retain data from 
+those workspaces indefinitely (unless explicitly deleted). The same goes for documents that are deleted 
+from workspaces in Projectplace. If they have been downloaded by this script once, the local database will 
+retain those document.
+
+Basically, the local version of the workspaces will behave as if nothing is ever deleted from document archives.
+
+If documents are moved, or renamed - that will be reflected however. But as soon as they are deleted they will
+remain as is.
 
 ## Set up
 
@@ -82,3 +93,9 @@ You can run all steps above by specifying
 `python run.py -s -d -m`
 
 This will synchronize the database, download files and render new HTML-pages.
+
+## Danger Zone
+
+### Delete data
+ * If you want to rerun the synchronization from the beginning, supply the `-c` flag. Please note that you may
+   permanently loose data if you do so. 
