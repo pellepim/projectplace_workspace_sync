@@ -27,7 +27,17 @@ DB_INIT = [
       [id] INTEGER PRIMARY KEY,
       [statement] text
     );
+    """,
     """
+    CREATE TABLE IF NOT EXISTS [urls] (
+      [id] INTEGER PRIMARY KEY,
+      [name] text,
+      [urllink] text,
+      [modified_time] INTEGER,
+      [container_id] INTEGER,
+      [workspace_id] INTEGER
+    );
+    """,
 ]
 
 MIGRATIONS = [

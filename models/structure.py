@@ -4,7 +4,7 @@ import models.workspace
 import models.document
 import os
 import config
-import textwrap
+import sdk.utils
 import sys
 
 
@@ -49,13 +49,16 @@ class Structure(object):
         print('Workspaces updated, moving on to documents')
 
         for workspace in workspaces:
-            containers, documents = sdk.connection.workspace_documents(workspace.id)
+            containers, documents, urls = sdk.connection.workspace_documents(workspace.id)
 
             for c in containers:
                 c.update_or_insert()
 
             for d in documents:
                 d.update_or_insert()
+
+            for u in urls:
+                u.update_or_insert()
 
     @classmethod
     def download_docs(cls):
@@ -86,52 +89,11 @@ class Structure(object):
     def html_file_path(self):
         return os.path.join(self.html_file_location, 'index.html')
 
-    @property
-    def html_header(self):
-        return textwrap.dedent("""
-        <html>
-        <head>
-            <title>Projects</title>
-            <style type="text/css">
-                body {
-                    font-size: 16px;
-                    font-family: "PromixaNovaRegular", "AvenirRegular", Arial, Helvetica, sans-serif;
-                    margin: 0;
-                    padding: 0;
-                }
-                a {
-                    color: #559955;
-                    text-decoration: none;
-                }
-                a:hover {
-                    text-decoration: underline;
-                }
-                a:visited {
-                    color: #997777;
-                }
-                div.breadcrumbs {
-                    margin: 0px;
-                    padding: 20px;
-                    border-bottom: 2px solid #ddd;
-                    background-color: #f5f5f5;
-                }
-                ul li {
-                    margin-bottom: 10px;
-                }
-                div.content {
-                    padding: 10px 20px 0 20px;
-                }
-            </style>    
-        </head>
-        <body>
-            <div class="breadcrumbs"><a href="%(home_url)s">Projects</a> /</div>
-            <div class="content">
-        """ % {
-            'home_url': 'index.html'
-        })
+    @classmethod
+    def breadcrumbs(cls):
+        return '<div class="breadcrumbs"><a href="index.html">Projects</a> /</div>'
 
     def html_content(self, workspaces):
-
         def lst():
             workspaces_html = ''
             for workspace in workspaces:
@@ -166,7 +128,7 @@ class Structure(object):
             workspace.render_html()
 
         with open(self.html_file_path, 'w') as fp:
-            fp.write(self.html_header)
+            fp.write(sdk.utils.html_header('Projects', self.breadcrumbs()))
             fp.write(self.html_content(workspaces))
             fp.write(self.html_footer)
 

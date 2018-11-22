@@ -1,6 +1,4 @@
 import db
-import requests
-import config
 import sdk.connection
 import os
 

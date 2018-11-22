@@ -2,6 +2,8 @@ import db
 import os
 import models.document
 import models.workspace
+import models.url
+import sdk.utils
 
 
 class Container(object):
@@ -104,60 +106,12 @@ class Container(object):
 
         return ' / '.join(breadcrumbs)
 
-    @property
-    def html_header(self):
+    def breadcrumbs(self):
         workspace = models.workspace.Workspace.get_by_id(self.workspace_id)
-        return """
-               <html>
-               <head>
-                   <title>%(container_name)s</title>
-                    <style type="text/css">
-                    body {
-                        font-size: 16px;
-                        font-family: "PromixaNovaRegular", "AvenirRegular", Arial, Helvetica, sans-serif;
-                        margin: 0;
-                        padding: 0;
-                    }
-                    a {
-                        color: #559955;
-                        text-decoration: none;
-                    }
-                    a:hover {
-                        text-decoration: underline;
-                    }
-                    a:visited {
-                        color: #997777;
-                    }
-                    div.breadcrumbs {
-                        margin: 0px;
-                        padding: 20px;
-                        border-bottom: 2px solid #ddd;
-                        background-color: #f5f5f5;
-                    }
-                    ul li {
-                        margin-bottom: 10px;
-                    }
-                    div.content {
-                        padding: 10px 20px 0;
-                    }
-                    h3 {
-                        display: flex;
-                        height: 1em;
-                    }
-                    h3 svg {
-                        height: 1em;
-                    }
-                    </style>
-               </head>
-               <body>
-               <div class="breadcrumbs"><a href="%(home_url)s">Projects</a> / <a href="%(workspace_url)s.html">%(workspace_name)s</a> / %(container_breadcrumb)s</div>
-               <div class="content">
-               """ % {
-            'home_url': 'index.html',
+        return '<div class="breadcrumbs"><a href="index.html">Projects</a> / <a href="%(workspace_url)s.html">%(workspace_name)s</a> / %(container_breadcrumb)s</div>' % {
             'workspace_url': workspace.id,
             'workspace_name': workspace.name,
-            'container_breadcrumb': self.html_container_breadcrumb,
-            'container_name': self.name
+            'container_breadcrumb': self.html_container_breadcrumb
         }
 
     @classmethod
@@ -201,6 +155,26 @@ class Container(object):
                </ul>
            """ % lst()
 
+    @classmethod
+    def html_url_content(cls, urls):
+        def lst():
+            urls_html = ''
+            for url in urls:
+                urls_html += '<li><a target="_blank" href="%(url)s">%(url_name)s</a></li>' % {
+                    'workspace_id': url.workspace_id,
+                    'url_name': url.name,
+                    'url': url.urllink
+                }
+
+            return urls_html
+
+        return """
+           <h3><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" data-prefix="far" data-icon="file" class="svg-inline--fa fa-file fa-w-12" role="img" viewBox="0 0 512 512"><path fill="currentColor" d="M326.612 185.391c59.747 59.809 58.927 155.698.36 214.59-.11.12-.24.25-.36.37l-67.2 67.2c-59.27 59.27-155.699 59.262-214.96 0-59.27-59.26-59.27-155.7 0-214.96l37.106-37.106c9.84-9.84 26.786-3.3 27.294 10.606.648 17.722 3.826 35.527 9.69 52.721 1.986 5.822.567 12.262-3.783 16.612l-13.087 13.087c-28.026 28.026-28.905 73.66-1.155 101.96 28.024 28.579 74.086 28.749 102.325.51l67.2-67.19c28.191-28.191 28.073-73.757 0-101.83-3.701-3.694-7.429-6.564-10.341-8.569a16.037 16.037 0 0 1-6.947-12.606c-.396-10.567 3.348-21.456 11.698-29.806l21.054-21.055c5.521-5.521 14.182-6.199 20.584-1.731a152.482 152.482 0 0 1 20.522 17.197zM467.547 44.449c-59.261-59.262-155.69-59.27-214.96 0l-67.2 67.2c-.12.12-.25.25-.36.37-58.566 58.892-59.387 154.781.36 214.59a152.454 152.454 0 0 0 20.521 17.196c6.402 4.468 15.064 3.789 20.584-1.731l21.054-21.055c8.35-8.35 12.094-19.239 11.698-29.806a16.037 16.037 0 0 0-6.947-12.606c-2.912-2.005-6.64-4.875-10.341-8.569-28.073-28.073-28.191-73.639 0-101.83l67.2-67.19c28.239-28.239 74.3-28.069 102.325.51 27.75 28.3 26.872 73.934-1.155 101.96l-13.087 13.087c-4.35 4.35-5.769 10.79-3.783 16.612 5.864 17.194 9.042 34.999 9.69 52.721.509 13.906 17.454 20.446 27.294 10.606l37.106-37.106c59.271-59.259 59.271-155.699.001-214.959z"/></svg>&nbsp;Links</h3>
+           <ul>
+           %s
+           </ul>
+       """ % lst()
+
     @property
     def html_footer(self):
         return """
@@ -209,16 +183,17 @@ class Container(object):
         </html>"""
 
     def render_html(self):
-        with db.DBConnection() as dbconn:
-            containers = Container.get_in_container(self.id)
-            documents = models.document.Document.get_in_container(self.id)
+        containers = Container.get_in_container(self.id)
+        documents = models.document.Document.get_in_container(self.id)
+        urls = models.url.Url.get_in_container(self.id)
 
         for container in containers:
             container.render_html()
 
         with open(self.html_file_path, 'w') as fp:
-            fp.write(self.html_header)
+            fp.write(sdk.utils.html_header(self.name, self.breadcrumbs()))
             fp.write(self.html_container_content(containers))
             fp.write(self.html_document_content(documents))
+            fp.write(self.html_url_content(urls))
             fp.write(self.html_footer)
 
