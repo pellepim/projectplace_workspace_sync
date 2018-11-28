@@ -1,6 +1,7 @@
 import json
 import voluptuous
 import requests_oauthlib
+import jinja2
 
 
 class Config(object):
@@ -30,6 +31,11 @@ class Config(object):
             resource_owner_secret=self.ACCESS_TOKEN_SECRET
         )
 
+    def jinja_env(self):
+        return jinja2.Environment(loader=jinja2.FileSystemLoader('templates'))
+
 
 conf = Config()
 oauth = conf.oauth()
+jinja_env = conf.jinja_env()
+

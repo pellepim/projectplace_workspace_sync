@@ -1,0 +1,18 @@
+<html>
+    <head>
+    <title>Workspaces</title>
+    <style type="text/css">
+        {% include "style.css" %}
+    </style>
+</head>
+<body>
+    <div class="breadcrumbs"><a href="index.html">Projects</a> /</div>
+    <div class="content">
+        <ul>
+            {% for workspace in workspaces %}
+                <li><a href="{{workspace.id}}.html">{{workspace.name}}</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+</body>
+</html>

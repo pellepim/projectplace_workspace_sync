@@ -1,0 +1,26 @@
+        {% if containers %}
+        <h3>Folders</h3>
+        <ul>
+            {% for container in containers %}
+                <li><a href="{{container.id}}.html">{{container.name}}</a></li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+        {% if documents %}
+        <h3>Documents</h3>
+        <ul>
+            {% for document in documents %}
+                <li><a href="../{{workspace.id}}/{{document.id}}" target="_blank">{{document.name}}</a></li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+        {% if urls %}
+        <h3>Links</h3>
+        <ul>
+            {% for url in urls %}
+            <li><a href="{{url.urllink}}" target="_blank">{{url.name}}</a></li>
+            {% endfor %}
+        </ul>
+        {% endif %}

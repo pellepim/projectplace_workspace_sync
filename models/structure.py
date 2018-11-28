@@ -6,7 +6,7 @@ import os
 import config
 import sdk.utils
 import sys
-
+import sdk.html
 
 class Structure(object):
 
@@ -78,60 +78,15 @@ class Structure(object):
             current += 1
         sys.stdout.write('\n')
 
-    @property
-    def html_file_location(self):
-        if not os.path.exists('localdata/html'):
-            os.makedirs('localdata/html')
-
-        return 'localdata/html'
-
-    @property
-    def html_file_path(self):
-        return os.path.join(self.html_file_location, 'index.html')
-
     @classmethod
-    def breadcrumbs(cls):
-        return '<div class="breadcrumbs"><a href="index.html">Projects</a> /</div>'
-
-    def html_content(self, workspaces):
-        def lst():
-            workspaces_html = ''
-            for workspace in workspaces:
-                workspaces_html += '<li><a href="%(workspace_url)s.html">%(workspace_name)s</a></li>' % {
-                    'workspace_url': workspace.id,
-                    'workspace_name': workspace.name
-                }
-
-            return workspaces_html
-
-        return """
-            <ul>
-            %s
-            </ul>
-        """ % lst()
-
-    @property
-    def html_footer(self):
-        return """
-        </body>
-        </html>
-        """
-
     def render_html(self):
         with db.DBConnection() as dbconn:
-            workspace_rows = dbconn.fetchall('SELECT id, name FROM workspaces ORDER BY name ASC')
+            workspace_rows = dbconn.fetchall('SELECT name, id FROM workspaces ORDER BY name ASC')
             workspaces = [
-                models.workspace.Workspace(row[1], row[0]) for row in workspace_rows
+                models.workspace.Workspace(*row) for row in workspace_rows
             ]
 
         for workspace in workspaces:
             workspace.render_html()
 
-        with open(self.html_file_path, 'w') as fp:
-            fp.write(sdk.utils.html_header('Projects', self.breadcrumbs()))
-            fp.write(self.html_content(workspaces))
-            fp.write(self.html_footer)
-
-
-
-
+        sdk.html.render_index_page(workspaces)

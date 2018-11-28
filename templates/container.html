@@ -1,0 +1,23 @@
+<html>
+    <head>
+    <title>{{workspace.name}}</title>
+    <style type="text/css">
+        {% include "style.css" %}
+    </style>
+</head>
+<body>
+    <div class="breadcrumbs">
+        <a href="index.html">Workspaces</a> /
+        <a href="{{workspace.id}}.html">{{workspace.name}}</a> /
+        {% for cont in container.container_path %}
+            <a href="{{cont.id}}.html">{{cont.name}}</a>
+            {% if cont != container.container_path[-1] %}
+                /
+            {% endif %}
+        {% endfor %}
+    </div>
+    <div class="content">
+        {% include "container_content.html" %}
+    </div>
+</body>
+</html>

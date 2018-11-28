@@ -31,8 +31,8 @@ accounts. Then enter the information you received from projectplace in config.js
     {
         "consumer_key": "ENTER YOUR APPLICATION KEY",
         "consumer_secret": "ENTER YOUR APPLCIATION SECRET",
-        "tokey_key": "ENTER YOUR TOKEN KEY",
-        "token_secret": "ENTER YOUR TOKEN SECRET",
+        "access_token": "ENTER YOUR TOKEN KEY",
+        "access_token_secret": "ENTER YOUR TOKEN SECRET",
         "host": "https://api.projectplace.com"
     }
 

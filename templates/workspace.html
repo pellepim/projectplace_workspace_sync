@@ -1,0 +1,14 @@
+<html>
+    <head>
+    <title>{{workspace.name}}</title>
+    <style type="text/css">
+        {% include "style.css" %}
+    </style>
+</head>
+<body>
+    <div class="breadcrumbs"><a href="index.html">Workspaces</a> / <a href="{{workspace.id}}.html">{{workspace.name}}</a></div>
+    <div class="content">
+        {% include "container_content.html" %}
+    </div>
+</body>
+</html>
