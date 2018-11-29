@@ -2,17 +2,29 @@ import db
 import sdk.connection
 import os
 import models.user
+import models.exceptions
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class Document(object):
+    SQL_SELECT_BY_ID = """
+        SELECT name, id, modified_time, container_id, workspace_id, modified_by_id FROM documents WHERE id = ?
+    """
+    SQL_UPDATE_BY_ID = """
+        UPDATE documents SET 
+            name = ?, container_id = ?, modified_time = ?, workspace_id = ?, modified_by_id = ? 
+        WHERE id = ?
+    """
 
-    def __init__(self, name, _id, modified_time, container_id, workspace_id, user_id):
+    def __init__(self, name, _id, modified_time, container_id, workspace_id, modified_by_id):
         self.name = name
         self.id = _id
         self.container_id = container_id
         self.modified_time = modified_time
         self.workspace_id = workspace_id
-        self.modified_by_id = user_id
+        self.modified_by_id = modified_by_id
 
     def __repr__(self):
         return '%s: %s (ID: %s)' % (
@@ -23,32 +35,47 @@ class Document(object):
     def modified_by(self):
         return models.user.User.get_by_id(self.modified_by_id)
 
+    def __eq__(self, other):
+        if self.id != other.id:
+            raise models.exceptions.InvalidComparisonError('Documents must have same ID in order to be compared')
+
+        return (self.name, self.container_id, self.modified_time, self.workspace_id, self.modified_by_id) == \
+               (other.name, other.container_id, other.modified_time, other.workspace_id, other.modified_by_id)
+
+    @classmethod
+    def get_by_id(cls, _id):
+        with db.DBConnection() as dbconn:
+            document_row = dbconn.fetchone(cls.SQL_SELECT_BY_ID, (_id,))
+
+            if document_row:
+                return Document(*document_row)
+
+        return None
+
     def update_or_insert(self):
         needs_download = False
+        existing_document = Document.get_by_id(self.id)
         with db.DBConnection() as dbconn:
-            row = dbconn.fetchone(
-                'SELECT id, name, container_id, modified_time, workspace_id, modified_by_id FROM documents WHERE id = ?', (self.id,)
-            )
-
-            if row:
-                if (row[1], row[2], row[3], row[4], row[5]) != (self.name, self.container_id, self.modified_time, self.workspace_id, self.modified_by_id):
-                    print('Updating document', self)
-                    dbconn.update(
-                        'UPDATE documents SET name = ?, container_id = ?, modified_time = ?, workspace_id = ?, modified_by_id = ? WHERE id = ?',
-                        (self.name, self.container_id, self.modified_time, self.workspace_id, self.modified_by_id, self.id)
-                    )
-
-                # Document has new modified time or workspace_id - needs to be re-downloaded
-                if row[3] != self.modified_time or row[4] != self.workspace_id:
-                    needs_download = True
-
-            else:
-                print('Inserting document', self)
-                dbconn.update('INSERT INTO documents (id, name, container_id, modified_time, workspace_id, modified_by_id) VALUES (?, ?, ?, ?, ?)', (
-                    self.id, self.name, self.container_id, self.modified_time, self.workspace_id, self.modified_by_id
-                ))
+            if existing_document is None:
+                logger.info('Inserting document %s', self)
+                dbconn.update(
+                    'INSERT INTO documents (id, name, container_id, modified_time, workspace_id, modified_by_id) VALUES (?, ?, ?, ?, ?)',
+                    (
+                        self.id, self.name, self.container_id, self.modified_time, self.workspace_id,
+                        self.modified_by_id
+                    ))
 
                 needs_download = True
+            if isinstance(existing_document, Document) and self != existing_document:
+                logger.info('Updating document %s', self)
+                dbconn.update(
+                    self.SQL_UPDATE_BY_ID,
+                    (self.name, self.container_id, self.modified_time, self.workspace_id, self.modified_by_id, self.id)
+                )
+
+                # Document has new modified time or workspace_id - needs to be re-downloaded
+                if existing_document.modified_time != self.modified_time or existing_document.workspace_id != self.workspace_id:
+                    needs_download = True
 
             if needs_download:
                 dbconn.update('UPDATE documents SET downloaded = 0 WHERE id = ?', (self.id,))
@@ -107,9 +134,3 @@ class Document(object):
 
         with db.DBConnection() as dbconn:
             dbconn.update('UPDATE documents SET downloaded = 1 WHERE id = ?', (self.id,))
-
-
-
-
-
-

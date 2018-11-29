@@ -5,3 +5,4 @@ config.json
 VIRTUAL/
 __pycache__/
 .data
+app.log

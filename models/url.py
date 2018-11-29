@@ -1,5 +1,7 @@
 import db
+import logging
 
+logger = logging.getLogger(__name__)
 
 class Url(object):
     def __init__(self, name, _id, modified_time, urllink, container_id, workspace_id):
@@ -23,14 +25,14 @@ class Url(object):
 
             if row:
                 if (row[0], row[2], row[3], row[4], row[5]) != (self.name, self.modified_time, self.urllink, self.container_id, self.workspace_id):
-                    print('Updating Url', self)
+                    logger.info('Updating Url %s', self)
                     dbconn.update(
                         'UPDATE urls SET name = ?, container_id = ?, modified_time = ?, workspace_id = ?, urllink = ? WHERE id = ?',
                         (self.name, self.container_id, self.modified_time, self.workspace_id, self.urllink, self.id)
                     )
 
             else:
-                print('Inserting Url', self)
+                logger.info('Inserting Url %s', self)
                 dbconn.update(
                     'INSERT INTO urls (name, id, modified_time, urllink, container_id, workspace_id) VALUES (?, ?, ?, ?, ?, ?)',
                     (self.name, self.id, self.modified_time, self.urllink, self.container_id, self.workspace_id)

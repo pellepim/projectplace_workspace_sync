@@ -1,0 +1,2 @@
+class InvalidComparisonError(Exception):
+    pass

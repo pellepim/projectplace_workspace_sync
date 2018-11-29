@@ -99,3 +99,13 @@ This will synchronize the database, download files and render new HTML-pages.
 ### Delete data
  * If you want to rerun the synchronization from the beginning, supply the `-c` flag. Please note that you may
    permanently loose data if you do so. 
+
+### A note on information security
+Since this code makes it possible to download all documents and some of their meta-data from all workspaces in an account -
+make sure to:
+
+- Store to an encrypted storage medium
+- Keep the configuration secrets *secret*
+- Allow access to the files only to highly privileged stakeholders
+- Access rights as they were defined in Projectplace are no longer relevant once the files are downloaded,
+anyone with access to the downloaded files will be able to see everything.

@@ -5,6 +5,9 @@ import models.url
 import sdk.utils
 import sdk.html
 import functools
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class Container(object):
@@ -26,12 +29,12 @@ class Container(object):
 
             if row:
                 if row[1] != self.name or row[2] != self.container_id or row[3] != self.workspace_id:
-                    print('Updating container', self)
+                    logger.info('Updating container %s', self)
                     dbconn.update('UPDATE containers SET name = ?, container_id = ?, workspace_id = ? WHERE id = ?', (
                         self.name, self.container_id, self.workspace_id, self.id
                     ))
             else:
-                print('Inserting container', self)
+                logger.info('Inserting container %s', self)
                 dbconn.update('INSERT INTO containers (id, name, container_id, workspace_id) VALUES (?, ?, ?, ?)', (
                     self.id, self.name, self.container_id, self.workspace_id
                 ))

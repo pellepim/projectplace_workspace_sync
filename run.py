@@ -4,6 +4,10 @@ if os.path.dirname(__file__):
 import models.structure
 import argparse
 import shutil
+import logging
+
+
+logging.basicConfig(level=logging.DEBUG, filename='app.log', format='%(asctime)s %(name)s - %(levelname)s: %(message)s')
 
 parser = argparse.ArgumentParser(description='Synchronize workspace documents for a Projectplace Enterprise Account')
 parser.add_argument('-c', '--clean', action='store_const', const=True,

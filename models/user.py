@@ -1,11 +1,6 @@
 import db
 import functools
 
-
-class InvalidComparisonError(Exception):
-    pass
-
-
 class User(object):
     def __init__(self, _id, name, email):
         self.id = _id
