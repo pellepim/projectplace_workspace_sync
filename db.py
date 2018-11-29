@@ -38,6 +38,30 @@ DB_INIT = [
       [workspace_id] INTEGER
     );
     """,
+    """
+    CREATE INDEX IF NOT EXISTS documents_workspace_id ON documents(workspace_id) 
+    """,
+    """
+    CREATE INDEX IF NOT EXISTS documents_container_id ON documents(container_id) 
+    """,
+    """
+    CREATE INDEX IF NOT EXISTS container_workspace_id ON containers(workspace_id)
+    """,
+    """
+    CREATE INDEX IF NOT EXISTS container_container_id ON containers(container_id)
+    """,
+    """
+    CREATE INDEX IF NOT EXISTS url_workspace_id ON urls(workspace_id)
+    """,
+    """
+    CREATE INDEX IF NOT EXISTS url_container_id ON urls(container_id)
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS [users] (
+      [id] INTEGER PRIMARY KEY,
+      [name] text
+    );
+    """,
 ]
 
 MIGRATIONS = [
@@ -49,6 +73,12 @@ MIGRATIONS = [
     """,
     """
     ALTER TABLE [documents] ADD COLUMN [downloaded] BIT DEFAULT 0;
+    """,
+    """
+    ALTER TABLE [documents] ADD COLUMN [modified_by_id] INTEGER;
+    """,
+    """
+    ALTER TABLE [users] ADD COLUMN [email] TEXT;
     """
 ]
 

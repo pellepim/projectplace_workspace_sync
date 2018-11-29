@@ -16,7 +16,6 @@ def retry(tries=1):
                 try:
                     return f(*args, **kwargs)
                 except:
-                    print(f, 'failed - trying', ltries, 'more times')
                     ltries -= 1
 
             return f(*args, **kwargs)
@@ -53,6 +52,15 @@ def workspace_documents(workspace_id):
     containers, documents, urls = sdk.utils.recurse_docs(response.json(), workspace_id, workspace_id)
 
     return containers, documents, urls
+
+
+@retry(tries=3)
+def account_members():
+    response = requests.get(_uri('/1/account/members?include_external_users=1'), auth=config.oauth)
+
+    users = sdk.utils.parse_account_members(response.json())
+
+    return users
 
 
 @retry(tries=3)

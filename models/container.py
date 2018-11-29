@@ -4,6 +4,7 @@ import models.workspace
 import models.url
 import sdk.utils
 import sdk.html
+import functools
 
 
 class Container(object):
@@ -48,6 +49,7 @@ class Container(object):
         ]
 
     @classmethod
+    @functools.lru_cache(None)
     def get_by_id(cls, container_id):
         with db.DBConnection() as dbconn:
             container_row = dbconn.fetchone(

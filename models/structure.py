@@ -2,14 +2,13 @@ import sdk.connection
 import db
 import models.workspace
 import models.document
-import os
 import config
 import sdk.utils
 import sys
 import sdk.html
 
-class Structure(object):
 
+class Structure(object):
     def __init__(self):
         db.DBConnection().verify_db()
 
@@ -59,6 +58,11 @@ class Structure(object):
 
             for u in urls:
                 u.update_or_insert()
+
+        users = sdk.connection.account_members()
+
+        for u in users:
+            u.update_or_insert()
 
     @classmethod
     def download_docs(cls):

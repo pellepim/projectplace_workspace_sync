@@ -1,35 +1,41 @@
 import db
 import sdk.connection
 import os
+import models.user
 
 
 class Document(object):
 
-    def __init__(self, name, _id, modified_time, container_id, workspace_id):
+    def __init__(self, name, _id, modified_time, container_id, workspace_id, user_id):
         self.name = name
         self.id = _id
         self.container_id = container_id
         self.modified_time = modified_time
         self.workspace_id = workspace_id
+        self.modified_by_id = user_id
 
     def __repr__(self):
         return '%s: %s (ID: %s)' % (
             self.__class__.__name__, self.name, self.id
         )
 
+    @property
+    def modified_by(self):
+        return models.user.User.get_by_id(self.modified_by_id)
+
     def update_or_insert(self):
         needs_download = False
         with db.DBConnection() as dbconn:
             row = dbconn.fetchone(
-                'SELECT id, name, container_id, modified_time, workspace_id FROM documents WHERE id = ?', (self.id,)
+                'SELECT id, name, container_id, modified_time, workspace_id, modified_by_id FROM documents WHERE id = ?', (self.id,)
             )
 
             if row:
-                if (row[1], row[2], row[3], row[4]) != (self.name, self.container_id, self.modified_time, self.workspace_id):
+                if (row[1], row[2], row[3], row[4], row[5]) != (self.name, self.container_id, self.modified_time, self.workspace_id, self.modified_by_id):
                     print('Updating document', self)
                     dbconn.update(
-                        'UPDATE documents SET name = ?, container_id = ?, modified_time = ?, workspace_id = ? WHERE id = ?',
-                        (self.name, self.container_id, self.modified_time, self.workspace_id, self.id)
+                        'UPDATE documents SET name = ?, container_id = ?, modified_time = ?, workspace_id = ?, modified_by_id = ? WHERE id = ?',
+                        (self.name, self.container_id, self.modified_time, self.workspace_id, self.modified_by_id, self.id)
                     )
 
                 # Document has new modified time or workspace_id - needs to be re-downloaded
@@ -38,8 +44,8 @@ class Document(object):
 
             else:
                 print('Inserting document', self)
-                dbconn.update('INSERT INTO documents (id, name, container_id, modified_time, workspace_id) VALUES (?, ?, ?, ?, ?)', (
-                    self.id, self.name, self.container_id, self.modified_time, self.workspace_id
+                dbconn.update('INSERT INTO documents (id, name, container_id, modified_time, workspace_id, modified_by_id) VALUES (?, ?, ?, ?, ?)', (
+                    self.id, self.name, self.container_id, self.modified_time, self.workspace_id, self.modified_by_id
                 ))
 
                 needs_download = True
@@ -53,7 +59,7 @@ class Document(object):
     def get_in_container(cls, container_id):
         with db.DBConnection() as dbconn:
             document_rows = dbconn.fetchall(
-                'SELECT name, id, modified_time, container_id, workspace_id FROM documents WHERE container_id = ? ORDER BY name ASC',
+                'SELECT name, id, modified_time, container_id, workspace_id, modified_by_id FROM documents WHERE container_id = ? ORDER BY name ASC',
                 (container_id,)
             )
         return [
@@ -64,10 +70,15 @@ class Document(object):
     def by_pending_download(cls):
         with db.DBConnection() as dbconn:
             document_rows = dbconn.fetchall(
-                'SELECT name, id, modified_time, container_id, workspace_id FROM documents WHERE downloaded = 0'
+                'SELECT name, id, modified_time, container_id, workspace_id, modified_by_id FROM documents WHERE downloaded = 0'
             )
 
         return [Document(*row) for row in document_rows]
+
+    @property
+    def modified_time_iso(self):
+        import datetime
+        return datetime.datetime.utcfromtimestamp(self.modified_time)
 
     @property
     def local_filename(self):

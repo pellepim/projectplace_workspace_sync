@@ -9,11 +9,22 @@
 
         {% if documents %}
         <h3>Documents</h3>
-        <ul>
+        <table cellpadding="0" cellspacing="0">
+            <tr><th>Name</th><th>Last modified</th><th>Last modified by</th></tr>
             {% for document in documents %}
-                <li><a href="../{{workspace.id}}/{{document.id}}" target="_blank">{{document.name}}</a></li>
+                <tr>
+                    <td><a href="../{{workspace.id}}/{{document.id}}" target="_blank">{{document.name}}</a></td>
+                    <td>{{document.modified_time_iso}}</td>
+                    <td>
+                        {% if document.modified_by %}
+                            {{document.modified_by.name}}
+                        {% else %}
+                            N/A (UID: {{document.modified_by_id}})
+                        {% endif %}
+                    </td>
+                </tr>
             {% endfor %}
-        </ul>
+        </table>
         {% endif %}
 
         {% if urls %}
