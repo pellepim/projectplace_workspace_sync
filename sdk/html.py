@@ -9,6 +9,8 @@ def ensure_path(func):
         except FileNotFoundError:
             if not os.path.exists('localdata/html'):
                 os.makedirs('localdata/html')
+            return func(*args)
+
     return func_wrapper
 
 
