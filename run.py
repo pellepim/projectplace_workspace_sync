@@ -24,9 +24,10 @@ if args.clean:
     if confirm_clean.lower() == 'yes':
         try:
             os.remove('.data')
+            shutil.rmtree('localdata')
         except FileNotFoundError:
             pass
-        shutil.rmtree('localdata')
+
     else:
         print('Cancelling operation')
         exit()

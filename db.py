@@ -39,24 +39,6 @@ DB_INIT = [
     );
     """,
     """
-    CREATE INDEX IF NOT EXISTS documents_workspace_id ON documents(workspace_id) 
-    """,
-    """
-    CREATE INDEX IF NOT EXISTS documents_container_id ON documents(container_id) 
-    """,
-    """
-    CREATE INDEX IF NOT EXISTS container_workspace_id ON containers(workspace_id)
-    """,
-    """
-    CREATE INDEX IF NOT EXISTS container_container_id ON containers(container_id)
-    """,
-    """
-    CREATE INDEX IF NOT EXISTS url_workspace_id ON urls(workspace_id)
-    """,
-    """
-    CREATE INDEX IF NOT EXISTS url_container_id ON urls(container_id)
-    """,
-    """
     CREATE TABLE IF NOT EXISTS [users] (
       [id] INTEGER PRIMARY KEY,
       [name] text
@@ -79,7 +61,25 @@ MIGRATIONS = [
     """,
     """
     ALTER TABLE [users] ADD COLUMN [email] TEXT;
+    """,
     """
+    CREATE INDEX IF NOT EXISTS url_workspace_id ON urls(workspace_id)
+    """,
+    """
+    CREATE INDEX IF NOT EXISTS url_container_id ON urls(container_id)
+    """,
+    """
+    CREATE INDEX IF NOT EXISTS documents_workspace_id ON documents(workspace_id) 
+    """,
+    """
+    CREATE INDEX IF NOT EXISTS documents_container_id ON documents(container_id) 
+    """,
+    """
+    CREATE INDEX IF NOT EXISTS container_workspace_id ON containers(workspace_id)
+    """,
+    """
+    CREATE INDEX IF NOT EXISTS container_container_id ON containers(container_id)
+    """,
 ]
 
 
@@ -117,7 +117,10 @@ class DBConnection(object):
         c = self.conn.cursor()
 
         for s in DB_INIT:
-            c.execute(s)
+            try:
+                c.execute(s)
+            except:
+                print('Failed on', s)
 
         for m in MIGRATIONS:
             c.execute('SELECT statement FROM changelog')

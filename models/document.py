@@ -59,7 +59,7 @@ class Document(object):
             if existing_document is None:
                 logger.info('Inserting document %s', self)
                 dbconn.update(
-                    'INSERT INTO documents (id, name, container_id, modified_time, workspace_id, modified_by_id) VALUES (?, ?, ?, ?, ?)',
+                    'INSERT INTO documents (id, name, container_id, modified_time, workspace_id, modified_by_id) VALUES (?, ?, ?, ?, ?, ?)',
                     (
                         self.id, self.name, self.container_id, self.modified_time, self.workspace_id,
                         self.modified_by_id
