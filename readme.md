@@ -36,7 +36,10 @@ accounts. Then enter the information you received from projectplace in config.js
         "host": "https://api.projectplace.com"
     }
 
-### 2. Limit to specific workspaces (optional)
+### 2. Other config settings
+The following configuration options are optional
+ 
+#### 2.1 Limit to specific workspaces (optional)
 If you want to limit the synchronisation to certain specific workspaces, specify an array of
 workspace_ids such as:
 
@@ -45,6 +48,21 @@ workspace_ids such as:
         "host": "https://api.projectplace.com",
         "workspace_ids": [3281238,3212309]
     }
+
+#### 2.2. Configure where files should be stored (optional)
+If you want to pick another location than `localdata` for the storage of html files and the downloaded files
+from the workspace. Specify a `filestorage` attribute in your `config.json`-file. Such as:
+
+    {
+        ...
+        "host": "https://api.projectplace.com",
+        "workspace_ids": [3281238,3212309],
+        "filestorage": "/absolute/path/to/a/directory/"
+    }
+    
+**Note**: If you change the filestorage option AFTER you have downloaded files from Projectplace - the local
+database will think that you have already downloaded them, and will not download them again (unless they change
+in Projectplace). Solution: move everything from the old location to the new location.
 
 ### 3. Python environment
 This script is written assuming python3 - make sure you have python3 available on your computer.

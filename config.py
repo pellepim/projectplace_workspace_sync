@@ -11,7 +11,8 @@ class Config(object):
         'access_token': str,
         'access_token_secret': str,
         'host': str,
-        voluptuous.Optional('workspace_ids'): [int]
+        voluptuous.Optional('workspace_ids'): [int],
+        voluptuous.Optional('filestorage'): str,
     }, required=True)
 
     def __init__(self):
@@ -24,6 +25,7 @@ class Config(object):
         self.ACCESS_TOKEN_SECRET = conf_dict['access_token_secret']
         self.HOST = conf_dict['host']
         self.WORKSPACE_IDS = conf_dict.get('workspace_ids', [])
+        self.FILESTORAGE_PATH = conf_dict.get('filestorage', 'localdata')
 
     def oauth(self):
         return requests_oauthlib.OAuth1(

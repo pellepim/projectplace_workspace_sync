@@ -24,20 +24,29 @@ class Container(object):
         )
 
     def update_or_insert(self):
+        statements = []
         with db.DBConnection() as dbconn:
             row = dbconn.fetchone('SELECT id, name, container_id, workspace_id FROM containers WHERE id = ?', (self.id,))
 
             if row:
                 if row[1] != self.name or row[2] != self.container_id or row[3] != self.workspace_id:
                     logger.info('Updating container %s', self)
-                    dbconn.update('UPDATE containers SET name = ?, container_id = ?, workspace_id = ? WHERE id = ?', (
-                        self.name, self.container_id, self.workspace_id, self.id
-                    ))
+                    statements.append(
+                        (
+                            'UPDATE containers SET name = ?, container_id = ?, workspace_id = ? WHERE id = ?',
+                            (self.name, self.container_id, self.workspace_id, self.id)
+                        )
+                    )
             else:
                 logger.info('Inserting container %s', self)
-                dbconn.update('INSERT INTO containers (id, name, container_id, workspace_id) VALUES (?, ?, ?, ?)', (
-                    self.id, self.name, self.container_id, self.workspace_id
-                ))
+                statements.append(
+                    (
+                        'INSERT INTO containers (id, name, container_id, workspace_id) VALUES (?, ?, ?, ?)',
+                        (self.id, self.name, self.container_id, self.workspace_id)
+                    )
+                )
+
+        return statements
 
     @classmethod
     def get_in_container(cls, container_id):

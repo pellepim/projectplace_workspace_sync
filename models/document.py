@@ -4,6 +4,7 @@ import os
 import models.user
 import models.exceptions
 import logging
+import config
 
 logger = logging.getLogger(__name__)
 
@@ -55,32 +56,43 @@ class Document(object):
     def update_or_insert(self):
         needs_download = False
         existing_document = Document.get_by_id(self.id)
-        with db.DBConnection() as dbconn:
-            if existing_document is None:
-                logger.info('Inserting document %s', self)
-                dbconn.update(
+        statements = []
+
+        if existing_document is None:
+            logger.info('Inserting document %s', self)
+            statements.append(
+                (
                     'INSERT INTO documents (id, name, container_id, modified_time, workspace_id, modified_by_id) VALUES (?, ?, ?, ?, ?, ?)',
                     (
                         self.id, self.name, self.container_id, self.modified_time, self.workspace_id,
                         self.modified_by_id
-                    ))
+                    )
+                )
+            )
 
-                needs_download = True
-            if isinstance(existing_document, Document) and self != existing_document:
-                logger.info('Updating document %s', self)
-                dbconn.update(
+            needs_download = True
+        if isinstance(existing_document, Document) and self != existing_document:
+            logger.info('Updating document %s', self)
+            statements.append(
+                (
                     self.SQL_UPDATE_BY_ID,
                     (self.name, self.container_id, self.modified_time, self.workspace_id, self.modified_by_id, self.id)
                 )
+            )
 
-                # Document has new modified time or workspace_id - needs to be re-downloaded
-                if existing_document.modified_time != self.modified_time or existing_document.workspace_id != self.workspace_id:
-                    needs_download = True
+            # Document has new modified time or workspace_id - needs to be re-downloaded
+            if existing_document.modified_time != self.modified_time or existing_document.workspace_id != self.workspace_id:
+                needs_download = True
 
-            if needs_download:
-                dbconn.update('UPDATE documents SET downloaded = 0 WHERE id = ?', (self.id,))
+        if needs_download:
+            statements.append(
+                (
+                    'UPDATE documents SET downloaded = 0 WHERE id = ?',
+                    (self.id,)
+                )
+            )
 
-        return needs_download
+        return statements
 
     @classmethod
     def get_in_container(cls, container_id):
@@ -117,7 +129,7 @@ class Document(object):
 
     @property
     def local_file_location(self):
-        return os.path.join('localdata/%s' % self.workspace_id)
+        return os.path.join(config.conf.FILESTORAGE_PATH, str(self.workspace_id))
 
     @property
     def local_filepath(self):

@@ -99,6 +99,9 @@ class DBConnection(object):
         self.execute(statement, parameters)
         self.conn.commit()
 
+    def update_no_commit(self, statement, parameters=None):
+        self.execute(statement, parameters)
+
     def execute(self, statement, parameters=None):
         if not parameters:
             self.cursor.execute(statement)

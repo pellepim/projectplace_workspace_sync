@@ -5,10 +5,12 @@ import models.structure
 import argparse
 import shutil
 import logging
-
+import config
 
 logging.basicConfig(level=logging.DEBUG, filename='app.log', format='%(asctime)s %(name)s - %(levelname)s: %(message)s')
 
+
+logger = logging.getLogger(__name__)
 parser = argparse.ArgumentParser(description='Synchronize workspace documents for a Projectplace Enterprise Account')
 parser.add_argument('-c', '--clean', action='store_const', const=True,
                     help='Flag to start a clean sync (deletes local database)')
@@ -19,15 +21,17 @@ parser.add_argument('-m', '--html', action='store_const', const=True, help='Flag
 args = parser.parse_args()
 
 if args.clean:
+    logger.info('Trying to clean')
     confirm_clean = input('Running with -c will delete all existing local information/documents. Are you sure? (type "yes")?')
-
+    logger.info(confirm_clean)
     if confirm_clean.lower() == 'yes':
-        try:
+        if os.path.isfile('.data'):
+            logger.info('Removing entire sqlitedatabase (.data file)')
             os.remove('.data')
-            shutil.rmtree('localdata')
-        except FileNotFoundError:
-            pass
-
+        if os.path.isdir(config.conf.FILESTORAGE_PATH):
+            logger.info('Removing entire file structure ("filestorage" directory)')
+            shutil.rmtree(config.conf.FILESTORAGE_PATH)
+        exit()
     else:
         print('Cancelling operation')
         exit()

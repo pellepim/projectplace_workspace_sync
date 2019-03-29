@@ -1,5 +1,10 @@
 import db
 import functools
+import logging
+from models.exceptions import InvalidComparisonError
+
+logger = logging.getLogger(__name__)
+
 
 class User(object):
     def __init__(self, _id, name, email):
@@ -33,17 +38,23 @@ class User(object):
 
     def update_or_insert(self):
         existing_user = User.get_by_id(self.id)
+        statements = []
 
-        with db.DBConnection() as dbconn:
-            if existing_user is None:
-                print(self, 'does not exist - creating')
-                dbconn.update(
+        if existing_user is None:
+            logging.info('%r does not exist - creating', self)
+            statements.append(
+                (
                     'INSERT INTO users (id, name, email) VALUES (?, ?, ?)',
                     (self.id, self.name, self.email)
                 )
-            elif isinstance(existing_user, User) and existing_user != self:
-                print(self, 'exists - but has changed - updating')
-                dbconn.update(
+            )
+        elif isinstance(existing_user, User) and existing_user != self:
+            logging.info('%r exists - but has changed - updating', self)
+            statements.append(
+                (
                     'UPDATE users SET name = ?, email = ? WHERE id = ?',
                     (self.name, self.email, self.id)
                 )
+            )
+
+        return statements
