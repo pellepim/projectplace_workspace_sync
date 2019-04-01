@@ -87,14 +87,8 @@ class Structure(object):
     @classmethod
     def download_docs(cls):
         documents = models.document.Document.by_pending_download()
-        no = len(documents)
-        current = 1
         for document in documents:
-            document_name = document.name if len(document.name) < 60 else document.name[0:50] + '...' + document.name[-5:]
-            logger.info('Downloading: %d / %d (%s)' % (current, no, document_name))
             document.download()
-            current += 1
-        sys.stdout.write('\n')
 
     @classmethod
     def render_html(self):
