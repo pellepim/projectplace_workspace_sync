@@ -11,6 +11,8 @@ documents.
 
 It is suitable to set up as a recurring task, for example nightly.
 
+Currently only handles documents uploaded to the document tool in Projectplace workspaces, documents uploaded to other artifacts (e.g cards, activities, conversations etc) are not downloaded or represented through this tool.
+
 ## Poor man's backup
 When workspaces are archived or terminated in Projectplace - this script will retain data from 
 those workspaces indefinitely (unless explicitly deleted). The same goes for documents that are deleted 
