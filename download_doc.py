@@ -4,7 +4,9 @@ import argparse
 import sdk.connection
 import os
 
-logging.basicConfig(level=logging.DEBUG, filename='app.log', format='%(asctime)s %(name)s - %(levelname)s: %(message)s')
+logging.basicConfig(level=logging.DEBUG, filename='download_docs.log', format='%(asctime)s %(name)s - %(levelname)s: %(message)s')
+
+logger = logging.getLogger(__name__)
 
 parser = argparse.ArgumentParser(description='Download a single document from a Projectplace Enterprise Account')
 parser.add_argument('-i', '--document_id', help='The ID of the document to download', required=True)
@@ -27,4 +29,4 @@ file_path = os.path.join(file_location, '%d.%s' % (document_id, args.suffix))
 with open(file_path, 'wb') as fp:
     fp.write(doc_response.content)
 
-
+exit(0)

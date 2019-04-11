@@ -128,6 +128,13 @@ class Document(object):
         return self.id
 
     @property
+    def file_ending(self):
+        if '.' in self.name:
+            return self.name.split('.')[-1]
+
+        return ''
+
+    @property
     def local_file_location(self):
         return os.path.join(config.conf.FILESTORAGE_PATH, str(self.workspace_id))
 

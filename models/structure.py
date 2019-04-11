@@ -4,9 +4,9 @@ import models.workspace
 import models.document
 import config
 import sdk.utils
-import sys
 import sdk.html
 import logging
+import subprocess
 
 logger = logging.getLogger(__name__)
 
@@ -87,6 +87,35 @@ class Structure(object):
     @classmethod
     def download_docs(cls):
         documents = models.document.Document.by_pending_download()
+
+        chunks = [documents[x:x+5] for x in range(0, len(documents), 5)]
+
+        for chunk in chunks:
+            processes = []
+            successfully_downloaded = []
+            logger.info('Downloading %d documents in parallel', len(chunk))
+            for doc in chunk:
+                processes.append(
+                    (
+                        subprocess.Popen(['python', 'download_doc.py', '-i', str(doc.id), '-w', str(doc.workspace_id), '-s', doc.file_ending]),
+                        doc
+                    )
+                )
+
+            for p, doc in processes:
+                p.wait()
+                if p.returncode != 0:
+                    logger.error('Failed to download %s - will retry on next run (maybe it has been deleted remotely?)', doc)
+                else:
+                    successfully_downloaded.append(doc)
+
+            with db.DBConnection() as dbconn:
+                logger.info('Successfully downloaded %s, marking as downloaded', successfully_downloaded)
+                for doc in successfully_downloaded:
+                    dbconn.update_no_commit('UPDATE documents SET downloaded = 1 WHERE id = ?', (doc.id,))
+
+                dbconn.conn.commit()
+
         for document in documents:
             document.download()
 

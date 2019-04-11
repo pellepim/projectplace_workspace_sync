@@ -6,3 +6,4 @@ VIRTUAL/
 __pycache__/
 .data
 app.log
+download_docs.log
