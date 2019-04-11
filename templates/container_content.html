@@ -13,7 +13,7 @@
             <tr><th>Name</th><th>Last modified</th><th>Last modified by</th></tr>
             {% for document in documents %}
                 <tr>
-                    <td><a href="../{{workspace.id}}/{{document.id}}" target="_blank">{{document.name}}</a></td>
+                    <td><a href="../{{workspace.id}}/{{document.id}}{% if document.file_ending %}.{{ document.file_ending }}{% endif %}" target="_blank">{{document.name}}</a></td>
                     <td>{{document.modified_time_iso}}</td>
                     <td>
                         {% if document.modified_by %}

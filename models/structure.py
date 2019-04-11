@@ -7,6 +7,7 @@ import sdk.utils
 import sdk.html
 import logging
 import subprocess
+from tqdm import tqdm
 
 logger = logging.getLogger(__name__)
 
@@ -27,12 +28,18 @@ class Structure(object):
 
         return workspace_map
 
-    def synchronize(self):
+    def synchronize(self, verbose=False):
+        pbar = None
+        if verbose:
+            print('Fetching workspace data... ', end="", flush=True)
+
         workspaces = sdk.connection.account_workspaces()
+
         if config.conf.WORKSPACE_IDS:
             logger.info('Limited sync, check config for specific workspaces synchronized')
             workspaces = [w for w in workspaces if w.id in config.conf.WORKSPACE_IDS]
         workspaces_ids = [w.id for w in workspaces]
+
 
         with db.DBConnection() as dbconn:
             existing_workspace_map = self.workspaces_from_db(dbconn)
@@ -50,7 +57,10 @@ class Structure(object):
             if _id not in workspaces_ids:
                 logger.info('Workspace %s, %s seems to be archived - not touching', _id, ws['name'])
 
-        logger.info('Workspaces updated, moving on to documents')
+        if verbose:
+            print('done.')
+            print('Fetching document data for %d workspaces' % len(workspaces))
+            pbar = tqdm(total=len(workspaces))
 
         for workspace in workspaces:
             workspace_statements = []
@@ -72,8 +82,16 @@ class Structure(object):
                 dbconn.conn.commit()
                 logging.info('Done')
 
+            if pbar is not None:
+                pbar.update(1)
+
+        if pbar is not None:
+            pbar.close()
+
         users = sdk.connection.account_members()
         user_statements = []
+        if verbose:
+            print('Updating user information... ', end='', flush=True)
         for us in users:
             user_statements += us.update_or_insert()
 
@@ -83,12 +101,22 @@ class Structure(object):
             logging.info('Committing SQL queries for users')
             dbconn.conn.commit()
             logging.info('Done')
+        if verbose:
+            print('done.')
 
     @classmethod
-    def download_docs(cls):
+    def download_docs(cls, verbose_download=False):
         documents = models.document.Document.by_pending_download()
-
+        pbar = None
+        total_remaining = len(documents)
         chunks = [documents[x:x+5] for x in range(0, len(documents), 5)]
+
+        if verbose_download:
+            if not total_remaining:
+                print('All documents already downloaded')
+            else:
+                print('Document download progress')
+                pbar = tqdm(total=total_remaining)
 
         for chunk in chunks:
             processes = []
@@ -116,18 +144,39 @@ class Structure(object):
 
                 dbconn.conn.commit()
 
-        for document in documents:
-            document.download()
+                if pbar is not None:
+                    pbar.update(len(successfully_downloaded))
+
+        if pbar is not None:
+            pbar.close()
+
+
+
 
     @classmethod
-    def render_html(self):
+    def render_html(self, verbose=False):
+        pbar = None
+        if verbose:
+            print('Rendering HTML for workspaces')
         with db.DBConnection() as dbconn:
             workspace_rows = dbconn.fetchall('SELECT name, id FROM workspaces ORDER BY name ASC')
             workspaces = [
                 models.workspace.Workspace(*row) for row in workspace_rows
             ]
 
+        if verbose:
+            pbar = tqdm(total=len(workspaces))
+
         for workspace in workspaces:
             workspace.render_html()
+            if pbar is not None:
+                pbar.update(1)
+
+        if pbar is not None:
+            pbar.close()
 
         sdk.html.render_index_page(workspaces)
+        if verbose:
+            import os
+            print('HTML has been rendered and can be found by opening %s' % os.path.join(config.conf.FILESTORAGE_PATH, 'html', 'index.html'))
+

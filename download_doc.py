@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import config
 import logging
 import argparse
@@ -28,5 +29,3 @@ file_path = os.path.join(file_location, '%d.%s' % (document_id, args.suffix))
 
 with open(file_path, 'wb') as fp:
     fp.write(doc_response.content)
-
-exit(0)
