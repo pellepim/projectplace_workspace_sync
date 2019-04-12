@@ -6,14 +6,16 @@ This is a tool intended for IT-personnel in an organisation using
 It downloads all documents in the main document archive in all workspaces in a Projectplace Enterprise Account, 
 and on subsequent runs downloads only new or modified files.
 
-It then renders a HTML-page structure providing the opportunity to navigate the workspaces, folders and 
+It also renders a HTML-page structure providing the opportunity to navigate the workspaces, folders and 
 documents.
 
 It is suitable to set up as a recurring task, for example nightly.
 
 Currently only handles documents uploaded to the document tool in Projectplace workspaces, documents uploaded to other artifacts (e.g cards, activities, conversations etc) are not downloaded or represented through this tool.
 
-## Poor man's backup
+The first run of the tool will necessarily be much slower than all subsequent runs, once everything has been synched once, only new or updated info is fetched.
+
+## "Poor man's" backup
 When workspaces are archived or terminated in Projectplace - this script will retain data from 
 those workspaces indefinitely (unless explicitly deleted). The same goes for documents that are deleted 
 from workspaces in Projectplace. If they have been downloaded by this script once, the local database will 
@@ -22,7 +24,7 @@ retain those document.
 Basically, the local version of the workspaces will behave as if nothing is ever deleted from document archives.
 
 If documents are moved, or renamed - that will be reflected however. But as soon as they are deleted they will
-remain as is.
+remain as they were when they were deleted.
 
 ## Set up
 
