@@ -4,6 +4,7 @@ import logging
 import argparse
 import sdk.connection
 import os
+import boto3
 
 logging.basicConfig(level=logging.DEBUG, filename='download_docs.log', format='%(asctime)s %(name)s - %(levelname)s: %(message)s')
 
@@ -21,6 +22,14 @@ document_id = int(args.document_id)
 doc_response = sdk.connection.download_doc(document_id)
 
 file_location = os.path.join(config.conf.FILESTORAGE_PATH, str(args.workspace_id))
+
+
+if config.conf.S3_BUCKET:
+    s3 = boto3.resource('s3')
+    logger.debug(s3.Bucket(config.conf.S3_BUCKET).put_object(
+        Key='%d.%s' % (document_id, args.suffix), Body=doc_response.content)
+    )
+    exit(0)
 
 if not os.path.exists(file_location):
     os.makedirs(file_location)

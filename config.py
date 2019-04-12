@@ -13,6 +13,7 @@ class Config(object):
         'host': str,
         voluptuous.Optional('workspace_ids'): [int],
         voluptuous.Optional('filestorage'): str,
+        voluptuous.Optional('s3bucket'): str,
     }, required=True)
 
     def __init__(self):
@@ -26,6 +27,7 @@ class Config(object):
         self.HOST = conf_dict['host']
         self.WORKSPACE_IDS = conf_dict.get('workspace_ids', [])
         self.FILESTORAGE_PATH = conf_dict.get('filestorage', 'localdata')
+        self.S3_BUCKET = conf_dict.get('s3bucket', None)
 
     def oauth(self):
         return requests_oauthlib.OAuth1(
