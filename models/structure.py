@@ -13,6 +13,9 @@ logger = logging.getLogger(__name__)
 
 
 class Structure(object):
+    boto_session = None
+    s3_resource = None
+
     def __init__(self):
         db.DBConnection().verify_db()
 
@@ -105,11 +108,46 @@ class Structure(object):
             print('done.')
 
     @classmethod
+    def download_one(cls, document_id, workspace_id, file_ending):
+        import os.path
+        import boto3
+        doc_response = sdk.connection.download_doc(document_id)
+
+        file_location = os.path.join(config.conf.FILESTORAGE_PATH, str(workspace_id))
+
+        if config.conf.S3_SETTINGS:
+            if cls.boto_session is None:
+                session = boto3.Session(
+                    aws_access_key_id=config.conf.S3_SETTINGS.AWS_ACCESS_KEY_ID,
+                    aws_secret_access_key=config.conf.S3_SETTINGS.AWS_SECRET_ACCESS_KEY,
+                )
+                cls.s3_resource = session.resource('s3')
+
+            cls.s3_resource.Bucket(config.conf.S3_SETTINGS.BUCKET_NAME).put_object(
+                Key='%d.%s' % (document_id, file_ending), Body=doc_response.content
+            )
+            return True, document_id
+        else:
+            if not os.path.exists(file_location):
+                os.makedirs(file_location)
+
+            file_path = os.path.join(file_location, '%d.%s' % (document_id, file_ending))
+
+            with open(file_path, 'wb') as fp:
+                fp.write(doc_response.content)
+
+            return True, document_id
+
+        return False, document_id
+
+    @classmethod
     def download_docs(cls, verbose_download=False):
+        import multiprocessing
+
         documents = models.document.Document.by_pending_download()
         pbar = None
         total_remaining = len(documents)
-        chunks = [documents[x:x+5] for x in range(0, len(documents), 5)]
+        chunks = [documents[x:x + 5] for x in range(0, len(documents), 5)]
 
         if verbose_download:
             if not total_remaining:
@@ -119,42 +157,31 @@ class Structure(object):
                 pbar = tqdm(total=total_remaining)
 
         for chunk in chunks:
-            processes = []
-            successfully_downloaded = []
             logger.info('Downloading %d documents in parallel', len(chunk))
+            pool = multiprocessing.Pool(len(chunk))
+            args = []
             for doc in chunk:
-                processes.append(
-                    (
-                        subprocess.Popen(['python', 'download_doc.py', '-i', str(doc.id), '-w', str(doc.workspace_id), '-s', doc.file_ending]),
-                        doc
-                    )
-                )
-
-            for p, doc in processes:
-                p.wait()
-                if p.returncode != 0:
-                    logger.error('Failed to download %s - will retry on next run (maybe it has been deleted remotely?)', doc)
-                else:
-                    successfully_downloaded.append(doc)
+                args.append((doc.id, doc.workspace_id, doc.file_ending))
+            result = pool.starmap(cls.download_one, args)
+            pool.close()
+            pool.join()
+            successfully_downloaded = [res[1] for res in result]
 
             with db.DBConnection() as dbconn:
                 logger.info('Successfully downloaded %s, marking as downloaded', successfully_downloaded)
-                for doc in successfully_downloaded:
-                    dbconn.update_no_commit('UPDATE documents SET downloaded = 1 WHERE id = ?', (doc.id,))
+                for doc_id in successfully_downloaded:
+                    dbconn.update_no_commit('UPDATE documents SET downloaded = 1 WHERE id = ?', (doc_id,))
 
                 dbconn.conn.commit()
 
-                if pbar is not None:
-                    pbar.update(len(successfully_downloaded))
+            if pbar is not None:
+                pbar.update(len(successfully_downloaded))
 
         if pbar is not None:
             pbar.close()
 
-
-
-
     @classmethod
-    def render_html(self, verbose=False):
+    def render_html(cls, verbose=False):
         pbar = None
         if verbose:
             print('Rendering HTML for workspaces')

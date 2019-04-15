@@ -68,6 +68,26 @@ from the workspace. Specify a `filestorage` attribute in your `config.json`-file
 database will think that you have already downloaded them, and will not download them again (unless they change
 in Projectplace). Solution: move everything from the old location to the new location.
 
+#### 2.3 Store files in AWS S3
+Instead of using local file storage you the script can be made to put each file from Projectplace into an S3-bucket
+of your choice. This is done automatically if you specify the `s3settings` attribute in the config file such as:
+
+    {
+        ...
+        "host": "https://api.projectplace.com",
+        "workspace_ids": [3281238,3212309],
+        s3settings": {
+            "bucket_name": "NAME_OF_YOUR_S3_BUCKET",
+            "aws_access_key_id": "AWS_ACCESS_KEY_ID",
+            "aws_secret_access_key": "AWS_SECRET_ACCESS_KEY"
+        }
+    }
+    
+**Note**: You will still be able to open the generated `index.html` to navigate workspaces and document containers,
+but you will NOT be able to open files simply by clicking them. This is because the downloaded documents are not 
+available on the local filesystem. If you want the same experience after switching to S3Storage you must run
+the server component. As described below in section 5.
+
 ### 3. Python environment
 This script is written assuming python3 - make sure you have python3 available on your computer.
 
@@ -85,7 +105,7 @@ This script is written assuming python3 - make sure you have python3 available o
 This will take a long time for the first run, as it populates a local sqlite database with all the
 relevant information and also downloads each document in turn.
 
-The sqlite database is saved in the local file `.data`.
+The sqlite database is saved in the local file `data.sqlite`.
 
 ### 2. Download pending files
 

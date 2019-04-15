@@ -85,7 +85,7 @@ MIGRATIONS = [
 
 class DBConnection(object):
     def __init__(self):
-        self.conn = sqlite3.Connection('.data')
+        self.conn = sqlite3.Connection('data.sqlite')
         self.cursor = None
 
     def __enter__(self):

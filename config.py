@@ -4,6 +4,21 @@ import requests_oauthlib
 import jinja2
 
 
+class AWSS3Conf(object):
+    ConfSchema = voluptuous.Schema({
+        'bucket_name': str,
+        'aws_access_key_id': str,
+        'aws_secret_access_key': str
+    })
+
+    def __init__(self, s3_settings):
+        conf_dict = self.ConfSchema(s3_settings)
+
+        self.BUCKET_NAME = conf_dict['bucket_name']
+        self.AWS_ACCESS_KEY_ID = conf_dict['aws_access_key_id']
+        self.AWS_SECRET_ACCESS_KEY = conf_dict['aws_secret_access_key']
+
+
 class Config(object):
     ConfSchema = voluptuous.Schema({
         'consumer_key': str,
@@ -13,7 +28,7 @@ class Config(object):
         'host': str,
         voluptuous.Optional('workspace_ids'): [int],
         voluptuous.Optional('filestorage'): str,
-        voluptuous.Optional('s3bucket'): str,
+        voluptuous.Optional('s3settings'): voluptuous.Any(dict, None),
     }, required=True)
 
     def __init__(self):
@@ -27,7 +42,7 @@ class Config(object):
         self.HOST = conf_dict['host']
         self.WORKSPACE_IDS = conf_dict.get('workspace_ids', [])
         self.FILESTORAGE_PATH = conf_dict.get('filestorage', 'localdata')
-        self.S3_BUCKET = conf_dict.get('s3bucket', None)
+        self.S3_SETTINGS = AWSS3Conf(conf_dict.get('s3settings')) if 's3settings' in conf_dict else None
 
     def oauth(self):
         return requests_oauthlib.OAuth1(

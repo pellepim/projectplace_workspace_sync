@@ -4,6 +4,6 @@ localdata/
 config.json
 VIRTUAL/
 __pycache__/
-.data
+data.sqlite
 app.log
 download_docs.log
