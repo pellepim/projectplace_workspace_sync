@@ -1,0 +1,15 @@
+<html>
+    <head>
+    <title>{{workspace.name}}</title>
+    <style type="text/css">
+        {% include "style.css" %}
+    </style>
+</head>
+<body>
+    <div class="breadcrumbs"><a href="/">Workspaces</a> / <a href="/workspace/{{workspace.id}}">{{workspace.name}}</a><a class="search" href="/search">Search</a></div>
+    <div class="content">
+        <a href="/workspace/{{ workspace.id }}/sync">Re-sync this project</a>
+        {% include "container_content-server.html" %}
+    </div>
+</body>
+</html>

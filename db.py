@@ -80,12 +80,32 @@ MIGRATIONS = [
     """
     CREATE INDEX IF NOT EXISTS container_container_id ON containers(container_id)
     """,
+    """
+    ALTER TABLE [documents] ADD COLUMN [description] TEXT;
+    """,
+    """
+    ALTER TABLE [containers] ADD COLUMN [description] TEXT;
+    """,
+    """
+    ALTER TABLE [urls] ADD COLUMN [description] TEXT;
+    """,
+    """
+    CREATE VIRTUAL TABLE search 
+        USING FTS5(id,name,description);
+    """,
+    """
+    DROP TABLE search;        
+    """,
+    """
+    CREATE VIRTUAL TABLE search 
+        USING FTS5(id,name,description,type);
+    """,
 ]
 
 
 class DBConnection(object):
     def __init__(self):
-        self.conn = sqlite3.Connection('data.sqlite')
+        self.conn = sqlite3.Connection('localdata/data.sqlite')
         self.cursor = None
 
     def __enter__(self):

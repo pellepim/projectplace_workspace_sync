@@ -3,14 +3,16 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class Url(object):
-    def __init__(self, name, _id, modified_time, urllink, container_id, workspace_id):
-        self.name = name
+    def __init__(self, _id, name, urllink, modified_time, container_id, workspace_id, description):
         self.id = _id
-        self.modified_time = modified_time
+        self.name = name
         self.urllink = urllink
+        self.modified_time = modified_time
         self.container_id = container_id
         self.workspace_id = workspace_id
+        self.description = description
 
     def __repr__(self):
         return '%s: %s (ID: %s)' % (
@@ -21,16 +23,32 @@ class Url(object):
         statements = []
         with db.DBConnection() as dbconn:
             row = dbconn.fetchone(
-                'SELECT name, id, modified_time, urllink, container_id, workspace_id FROM urls WHERE id = ?', (self.id,)
+                '''
+                SELECT name, urllink, modified_time, container_id, workspace_id, description FROM urls WHERE id = ?
+                ''', (self.id,)
             )
 
             if row:
-                if (row[0], row[2], row[3], row[4], row[5]) != (self.name, self.modified_time, self.urllink, self.container_id, self.workspace_id):
+                if (row[0], row[1], row[2], row[3], row[4], row[5]) != (
+                    self.name, self.urllink, self.modified_time, self.container_id, self.workspace_id, self.description
+                ):
+                    logger.info((row[0], row[1], row[2], row[3], row[4], row[5]))
+                    logger.info((
+                        self.name, self.urllink, self.modified_time, self.container_id, self.workspace_id, self.description
+                    ))
                     logger.info('Updating Url %s', self)
                     statements.append(
                         (
-                            'UPDATE urls SET name = ?, container_id = ?, modified_time = ?, workspace_id = ?, urllink = ? WHERE id = ?',
-                            (self.name, self.container_id, self.modified_time, self.workspace_id, self.urllink, self.id)
+                            '''
+                            UPDATE urls 
+                                SET name = ?, container_id = ?, modified_time = ?, workspace_id = ?, urllink = ?, 
+                                    description = ?
+                                WHERE id = ?
+                            ''',
+                            (
+                                self.name, self.container_id, self.modified_time, self.workspace_id, self.urllink,
+                                self.description, self.id
+                            )
                         )
                     )
 
@@ -38,8 +56,15 @@ class Url(object):
                 logger.info('Inserting Url %s', self)
                 statements.append(
                     (
-                        'INSERT INTO urls (name, id, modified_time, urllink, container_id, workspace_id) VALUES (?, ?, ?, ?, ?, ?)',
-                        (self.name, self.id, self.modified_time, self.urllink, self.container_id, self.workspace_id)
+                        '''
+                        INSERT INTO urls (
+                            id, name, urllink, modified_time, container_id, workspace_id, description
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                        ''',
+                        (
+                            self.id, self.name, self.urllink, self.modified_time, self.container_id, self.workspace_id,
+                            self.description
+                        )
                     )
                 )
 
@@ -49,7 +74,12 @@ class Url(object):
     def get_in_container(cls, container_id):
         with db.DBConnection() as dbconn:
             url_rows = dbconn.fetchall(
-                'SELECT name, id, modified_time, urllink, container_id, workspace_id FROM urls WHERE container_id = ? ORDER BY name ASC',
+                '''
+                SELECT
+                    id, name, urllink, modified_time, container_id, workspace_id, description 
+                FROM urls 
+                    WHERE container_id = ? ORDER BY name
+                ''',
                 (container_id,)
             )
         return [

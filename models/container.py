@@ -12,11 +12,12 @@ logger = logging.getLogger(__name__)
 
 class Container(object):
 
-    def __init__(self, name, _id, container_id, workspace_id):
-        self.name = name
+    def __init__(self, _id, name, container_id, workspace_id, description):
         self.id = _id
+        self.name = name
         self.container_id = container_id
         self.workspace_id = workspace_id
+        self.description = description
 
     def __repr__(self):
         return '%s: %s (ID: %s)' % (
@@ -26,23 +27,33 @@ class Container(object):
     def update_or_insert(self):
         statements = []
         with db.DBConnection() as dbconn:
-            row = dbconn.fetchone('SELECT id, name, container_id, workspace_id FROM containers WHERE id = ?', (self.id,))
+            row = dbconn.fetchone(
+                '''
+                SELECT id, name, container_id, workspace_id, description FROM containers WHERE id = ?
+                ''', (self.id,))
 
             if row:
-                if row[1] != self.name or row[2] != self.container_id or row[3] != self.workspace_id:
+                if row[1] != self.name or row[2] != self.container_id or row[3] != self.workspace_id or row[4] != self.description:
                     logger.info('Updating container %s', self)
                     statements.append(
                         (
-                            'UPDATE containers SET name = ?, container_id = ?, workspace_id = ? WHERE id = ?',
-                            (self.name, self.container_id, self.workspace_id, self.id)
+                            '''
+                            UPDATE containers 
+                                SET name = ?, container_id = ?, workspace_id = ?, description = ?
+                            WHERE id = ?
+                            ''',
+                            (self.name, self.container_id, self.workspace_id, self.description, self.id)
                         )
                     )
             else:
                 logger.info('Inserting container %s', self)
                 statements.append(
                     (
-                        'INSERT INTO containers (id, name, container_id, workspace_id) VALUES (?, ?, ?, ?)',
-                        (self.id, self.name, self.container_id, self.workspace_id)
+                        '''
+                        INSERT INTO 
+                            containers (id, name, container_id, workspace_id, description) VALUES (?, ?, ?, ?, ?)
+                        ''',
+                        (self.id, self.name, self.container_id, self.workspace_id, self.description)
                     )
                 )
 
@@ -52,12 +63,16 @@ class Container(object):
     def get_in_container(cls, container_id):
         with db.DBConnection() as dbconn:
             container_rows = dbconn.fetchall(
-                'SELECT id, name, container_id, workspace_id FROM containers WHERE container_id = ? ORDER BY name ASC',
+                '''
+                SELECT 
+                    id, name, container_id, workspace_id, description
+                FROM containers WHERE container_id = ? ORDER BY name ASC
+                ''',
                 (container_id,)
             )
 
         return [
-            Container(row[1], row[0], row[2], row[3]) for row in container_rows
+            Container(*row) for row in container_rows
         ]
 
     @classmethod
@@ -65,11 +80,11 @@ class Container(object):
     def get_by_id(cls, container_id):
         with db.DBConnection() as dbconn:
             container_row = dbconn.fetchone(
-                'SELECT id, name, container_id, workspace_id FROM containers WHERE id = ?', (container_id,)
+                'SELECT id, name, container_id, workspace_id, description FROM containers WHERE id = ?', (container_id,)
             )
 
         if container_row:
-            return Container(container_row[1], container_row[0], container_row[2], container_row[3])
+            return Container(*container_row)
 
         return None
 

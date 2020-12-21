@@ -29,6 +29,17 @@ class Workspace(object):
 
         return None
 
+    @classmethod
+    def get_all(cls):
+        with db.DBConnection() as dbconn:
+            workspace_rows = dbconn.fetchall(
+                """
+                select name, id from workspaces order by id
+                """
+            )
+
+            return [Workspace(*workspace_row) for workspace_row in workspace_rows]
+
     def render_html(self):
         containers = models.container.Container.get_in_container(self.id)
         documents = models.document.Document.get_in_container(self.id)

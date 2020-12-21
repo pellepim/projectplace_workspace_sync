@@ -45,9 +45,17 @@ def account_workspaces():
 
 
 @retry(tries=3)
+def workspace(workspace_id):
+    response = requests.get(_uri(f'/1/projects/{workspace_id}'), auth=config.oauth)
+
+    return response.json()
+
+
+@retry(tries=3)
 def workspace_documents(workspace_id):
-    response = requests.get(_uri('/1/projects/%d/documents?recursive=true&include_urls=true' % workspace_id),
-                            auth=config.oauth)
+    response = requests.get(
+        _uri('/1/projects/%d/documents?recursive=true&include_urls=true' % workspace_id), auth=config.oauth
+    )
 
     containers, documents, urls = sdk.utils.recurse_docs(response.json(), workspace_id, workspace_id)
 

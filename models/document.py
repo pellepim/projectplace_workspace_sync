@@ -11,25 +11,22 @@ logger = logging.getLogger(__name__)
 
 class Document(object):
     SQL_SELECT_BY_ID = """
-        SELECT name, id, modified_time, container_id, workspace_id, modified_by_id FROM documents WHERE id = ?
-    """
-    SQL_UPDATE_BY_ID = """
-        UPDATE documents SET 
-            name = ?, container_id = ?, modified_time = ?, workspace_id = ?, modified_by_id = ? 
-        WHERE id = ?
+        SELECT id, name, container_id, modified_time, workspace_id, modified_by_id, description 
+        FROM documents WHERE id = ?
     """
 
-    def __init__(self, name, _id, modified_time, container_id, workspace_id, modified_by_id):
-        self.name = name
+    def __init__(self, _id, name, container_id, modified_time, workspace_id, modified_by_id, description):
         self.id = _id
+        self.name = name
         self.container_id = container_id
         self.modified_time = modified_time
         self.workspace_id = workspace_id
         self.modified_by_id = modified_by_id
+        self.description = description
 
     def __repr__(self):
-        return '%s: %s (ID: %s)' % (
-            self.__class__.__name__, self.name, self.id
+        return '%s: %s (ID: %s) Description: %s' % (
+            self.__class__.__name__, self.name, self.id, self.description
         )
 
     @property
@@ -40,13 +37,20 @@ class Document(object):
         if self.id != other.id:
             raise models.exceptions.InvalidComparisonError('Documents must have same ID in order to be compared')
 
-        return (self.name, self.container_id, self.modified_time, self.workspace_id, self.modified_by_id) == \
-               (other.name, other.container_id, other.modified_time, other.workspace_id, other.modified_by_id)
+        return (
+            self.name, self.container_id, self.modified_time, self.workspace_id, self.modified_by_id,
+            self.description
+        ) == (
+            other.name, other.container_id, other.modified_time, other.workspace_id, other.modified_by_id,
+            other.description
+        )
 
     @classmethod
     def get_by_id(cls, _id):
         with db.DBConnection() as dbconn:
-            document_row = dbconn.fetchone(cls.SQL_SELECT_BY_ID, (_id,))
+            document_row = dbconn.fetchone(
+                cls.SQL_SELECT_BY_ID, (_id,)
+            )
 
             if document_row:
                 return Document(*document_row)
@@ -62,21 +66,31 @@ class Document(object):
             logger.info('Inserting document %s', self)
             statements.append(
                 (
-                    'INSERT INTO documents (id, name, container_id, modified_time, workspace_id, modified_by_id) VALUES (?, ?, ?, ?, ?, ?)',
+                    '''
+                    INSERT INTO documents (
+                        id, name, container_id, modified_time, workspace_id, modified_by_id, description
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                    ''',
                     (
                         self.id, self.name, self.container_id, self.modified_time, self.workspace_id,
-                        self.modified_by_id
+                        self.modified_by_id, self.description
                     )
                 )
             )
-
             needs_download = True
         if isinstance(existing_document, Document) and self != existing_document:
             logger.info('Updating document %s', self)
             statements.append(
                 (
-                    self.SQL_UPDATE_BY_ID,
-                    (self.name, self.container_id, self.modified_time, self.workspace_id, self.modified_by_id, self.id)
+                    '''
+                    UPDATE documents SET 
+                        name = ?, container_id = ?, modified_time = ?, workspace_id = ?, modified_by_id = ?, description = ? 
+                    WHERE id = ?
+                    ''',
+                    (
+                        self.name, self.container_id, self.modified_time, self.workspace_id, self.modified_by_id,
+                        self.description, self.id
+                    )
                 )
             )
 
@@ -98,7 +112,12 @@ class Document(object):
     def get_in_container(cls, container_id):
         with db.DBConnection() as dbconn:
             document_rows = dbconn.fetchall(
-                'SELECT name, id, modified_time, container_id, workspace_id, modified_by_id FROM documents WHERE container_id = ? ORDER BY name ASC',
+                '''
+                SELECT 
+                    id, name, container_id, modified_time, workspace_id, modified_by_id, description 
+                FROM documents 
+                    WHERE container_id = ? ORDER BY name
+                ''',
                 (container_id,)
             )
         return [
@@ -109,7 +128,10 @@ class Document(object):
     def by_pending_download(cls):
         with db.DBConnection() as dbconn:
             document_rows = dbconn.fetchall(
-                'SELECT name, id, modified_time, container_id, workspace_id, modified_by_id FROM documents WHERE downloaded = 0'
+                '''
+                SELECT id, name, container_id, modified_time, workspace_id, modified_by_id, description 
+                FROM documents WHERE downloaded = 0
+                '''
             )
 
         return [Document(*row) for row in document_rows]

@@ -1,0 +1,54 @@
+<html>
+    <head>
+    <title>Search</title>
+    <style type="text/css">
+        {% include "style.css" %}
+    </style>
+</head>
+<body>
+    <div class="breadcrumbs"><a href="/">Projects</a><a class="search" href="/search">Search</a></div>
+    <div class="content">
+        <form action="/search" method="post">
+            <input id="input-query" class="text-input-large" type="text" name="q"
+                   placeholder="Search names and descriptions" value="{{ query }}"/>
+            <input class="button" type="submit"/><br/>
+            <input type="checkbox" name="include_artifact"
+                   value="documents" id="checkbox-documents" {{ documents_checked }} />
+                <label for="checkbox-documents">Documents</label>
+            <input type="checkbox" name="include_artifact"
+                   value="containers" id="checkbox-containers" {{ containers_checked }}/>
+                <label for="checkbox-containers">Containers</label>
+            <input type="checkbox" name="include_artifact"
+                   value="urls" id="checkbox-urls" {{ urls_checked }}/>
+                <label for="checkbox-urls">URLs</label>
+        </form>
+
+{% if results %}
+        <table cellpadding="0" cellspacing="0" border="1">
+        <tr>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Type</th>
+        </tr>
+{% for result in results %}
+        <tr>
+            <td valign="top">
+                {%  if result.type == 'document' %}
+                    <a href="/document/{{ result.id }}">{{ result.name }}</a>
+                {% elif result.type == 'container' %}
+                    <a href="/container/{{ result.id }}">{{ result.name }}</a>
+                {% endif %}
+            </td>
+            <td valign="top">
+                {{ result.description|truncate(512, True)  }}
+            </td>
+            <td valign="top">
+                {{ result.type  }}
+            </td>
+        </tr>
+{% endfor %}
+        </table>
+{% endif %}
+    </div>
+</body>
+</html>

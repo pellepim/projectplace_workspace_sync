@@ -3,6 +3,7 @@ localdata/
 .idea/
 config.json
 VIRTUAL/
+venv/
 __pycache__/
 data.sqlite
 app.log

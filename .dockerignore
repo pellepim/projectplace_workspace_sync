@@ -1,0 +1,6 @@
+localdata
+venv
+config.json
+.gitignore
+*.log
+*.sqlite

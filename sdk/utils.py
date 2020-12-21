@@ -7,13 +7,13 @@ from functools import lru_cache, wraps
 
 def recurse_docs(documents_json, container_id, workspace_id):
     containers = [models.container.Container(
-        c['name'], c['id'], container_id, workspace_id
+        c['id'], c['name'], container_id, workspace_id, c['description']
     ) for c in documents_json.get('containers', [])]
     documents = [models.document.Document(
-        d['name'], d['id'], d['modified_time'], container_id, workspace_id, d['last_modifier']
+        d['id'], d['name'], container_id, d['modified_time'], workspace_id, d['last_modifier'], d['description']
     ) for d in documents_json.get('documents', [])]
     urls = [models.url.Url(
-        u['name'], u['id'], u['modified_time'], u['url'], container_id, workspace_id
+        u['id'], u['name'], u['url'], u['modified_time'], container_id, workspace_id, u.get('description', '')
     ) for u in documents_json.get('urls', [])]
 
     for c in documents_json.get('containers', []):

@@ -7,11 +7,9 @@ import argparse
 import shutil
 import logging
 import config
+import sys
+logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
-logging.basicConfig(level=logging.WARNING, filename='app.log', format='%(asctime)s %(name)s - %(levelname)s: %(message)s')
-
-
-logger = logging.getLogger(__name__)
 parser = argparse.ArgumentParser(description='Synchronize workspace documents for a Projectplace Enterprise Account')
 parser.add_argument('-c', '--clean', action='store_const', const=True,
                     help='Flag to start a clean sync (deletes local database)')
@@ -22,31 +20,28 @@ parser.add_argument('-st', '--silent', action='store_const', const=True, help='I
 args = parser.parse_args()
 
 if args.clean:
-    logger.info('Trying to clean')
+    logging.info('Trying to clean')
     confirm_clean = input('Running with -c will delete all existing local information/documents. Are you sure? (type "yes")?')
-    logger.info(confirm_clean)
+    logging.info(confirm_clean)
     if confirm_clean.lower() == 'yes':
         if os.path.isfile('data.sqlite'):
-            print('Removing entire sqlitedatabase (.data file)')
+            logging.info('Removing entire sqlitedatabase (data.sqlite file)')
             os.remove('data.sqlite')
         if os.path.isdir(config.conf.FILESTORAGE_PATH):
-            print('Removing entire file structure %s' % config.conf.FILESTORAGE_PATH)
+            logging.info('Removing entire file structure %s' % config.conf.FILESTORAGE_PATH)
             shutil.rmtree(config.conf.FILESTORAGE_PATH)
         exit()
     else:
-        print('Cancelling operation')
+        logging.info('Cancelling operation')
         exit()
 
 structure = models.structure.Structure()
 
 if args.sync:
-    structure.synchronize(not args.silent)
-
-if args.html:
-    structure.render_html(not args.silent)
+    structure.synchronize()
 
 if args.download:
-    structure.download_docs(not args.silent)
+    structure.download_docs()
 
 if not args.sync and not args.html and not args.download:
-    print('Not doing anything, specify -s to sync database, -d to download pending documents, and -m to render html, or all three at the same time.')
+    logging.info('Not doing anything, specify -s to sync database, -d to download pending documents, and -m to render html, or all three at the same time.')
